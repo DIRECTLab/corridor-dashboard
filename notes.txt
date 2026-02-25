@@ -1,0 +1,53 @@
+Who is this for?
+We're trying to comply with the requirements of sopo for corridors, the audience is doe stakeholders
+Infrusture people,
+Local government officials
+
+
+What are we trying to show?
+Look at electrification of 35,000 trucks on utah roads
+Impact of various input assumptions on that goal, and the cost of those assumptions
+Characterize system-level tradeoffs on how to support electric trucks in utah
+
+- Lot of uncertainty of where costs go, where to put money into batteries, chargers, how much they cost
+
+Near term known, medium term high confidence, long term optimistic but rational
+
+Show 3 scenarios, time/market contrained
+
+Maps, graphs, and numbers displayed, but we can show more heatmaps
+
+
+stationary_charging_cost to install per kw per capacity - 3 levels
+dynamic_charging cost to install per lane mile - 3 levels
+battery cost per kwh - 3
+ev adoption % - 2 
+
+Looking at cost per mile, total capital, maybe a heat map
+
+maps with zones of dynamic, static charging
+have more detail on zones
+
+2 numbers displayed - Cost per mile
+Percent dynamic wireless charging
+Predicted level of grid upgrades in kw, dollars
+
+Pie chart of total charging, broken into dynamic, static charging
+
+Graph breaking down what contributes to the cost per mile
+
+Line graph showing demand of the chargers
+
+Dropdown where you select county or city
+
+Filter by dropdown
+That changes the grid upgrades, demand graph for the chagers, capacity of charging
+
+
+Histogram where y axis is cost per mile,
+x axis is how many are in that
+
+
+Have a card showing where the current scenario sits on the histogram
+
+Map showing the data that we need to show on the municipality
