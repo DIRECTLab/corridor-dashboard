@@ -1,0 +1,142 @@
+<svg width="1200" height="1750" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="1750" fill="#f5f5f5" stroke="#ddd" stroke-width="1"/>
+  
+  <!-- Navbar -->
+  <rect x="0" y="0" width="1200" height="48" fill="#1976d2" stroke="#1565c0" stroke-width="1"/>
+  <text x="20" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="white">📊 Corridor Dashboard</text>
+  <text x="1100" y="30" font-family="Arial" font-size="14" fill="white">About</text>
+  
+  <!-- Scenario Selector Row -->
+  <rect x="20" y="68" width="280" height="60" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="30" y="90" font-family="Arial" font-size="12" fill="#666">Stationary Charging Cost</text>
+  <rect x="30" y="95" width="260" height="25" fill="#f9f9f9" stroke="#ddd" stroke-width="1" rx="2"/>
+  
+  <rect x="320" y="68" width="280" height="60" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="330" y="90" font-family="Arial" font-size="12" fill="#666">Dynamic Charging Cost</text>
+  <rect x="330" y="95" width="260" height="25" fill="#f9f9f9" stroke="#ddd" stroke-width="1" rx="2"/>
+  
+  <rect x="620" y="68" width="280" height="60" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="630" y="90" font-family="Arial" font-size="12" fill="#666">Battery Cost</text>
+  <rect x="630" y="95" width="260" height="25" fill="#f9f9f9" stroke="#ddd" stroke-width="1" rx="2"/>
+  
+  <rect x="920" y="68" width="260" height="60" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="930" y="90" font-family="Arial" font-size="12" fill="#666">EV Adoption %</text>
+  <rect x="930" y="95" width="240" height="25" fill="#f9f9f9" stroke="#ddd" stroke-width="1" rx="2"/>
+  
+  <!-- Infrastructure Cards Row -->
+  <rect x="20" y="148" width="580" height="300" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="30" y="170" font-family="Arial" font-size="14" font-weight="bold" fill="#333">Necessary Grid Infrastructure Upgrades</text>
+  <line x1="30" y1="180" x2="590" y2="180" stroke="#eee" stroke-width="1"/>
+  <text x="30" y="220" font-family="Arial" font-size="24" font-weight="bold" fill="#1976d2">$2,500,000</text>
+  <text x="30" y="250" font-family="Arial" font-size="18" fill="#666">5,000 kW</text>
+  
+  <rect x="620" y="148" width="560" height="300" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="630" y="170" font-family="Arial" font-size="14" font-weight="bold" fill="#333">Cost per Mile Comparison</text>
+  <line x1="630" y1="180" x2="1170" y2="180" stroke="#eee" stroke-width="1"/>
+  <!-- Bar chart representation -->
+  <rect x="650" y="220" width="30" height="150" fill="#1976d2" stroke="#1565c0" stroke-width="1"/>
+  <rect x="700" y="250" width="30" height="120" fill="#9e9e9e" stroke="#757575" stroke-width="1"/>
+  <rect x="750" y="230" width="30" height="140" fill="#9e9e9e" stroke="#757575" stroke-width="1"/>
+  <rect x="800" y="270" width="30" height="100" fill="#9e9e9e" stroke="#757575" stroke-width="1"/>
+  <text x="650" y="390" font-family="Arial" font-size="10" fill="#666">S1</text>
+  <text x="700" y="390" font-family="Arial" font-size="10" fill="#666">S2</text>
+  <text x="750" y="390" font-family="Arial" font-size="10" fill="#666">S3</text>
+  <text x="800" y="390" font-family="Arial" font-size="10" fill="#666">S4</text>
+  <text x="850" y="390" font-family="Arial" font-size="10" fill="#666">...</text>
+  <text x="900" y="390" font-family="Arial" font-size="10" fill="#666">S54</text>
+  
+  <!-- Charge Capacity Cards Row -->
+  <rect x="20" y="468" width="580" height="300" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="30" y="490" font-family="Arial" font-size="14" font-weight="bold" fill="#333">Total EV Charge Capacity</text>
+  <line x1="30" y1="500" x2="590" y2="500" stroke="#eee" stroke-width="1"/>
+  <text x="30" y="550" font-family="Arial" font-size="32" font-weight="bold" fill="#1976d2">15,000 kW</text>
+  
+  <rect x="620" y="468" width="560" height="300" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="630" y="490" font-family="Arial" font-size="14" font-weight="bold" fill="#333">Charging Type Distribution</text>
+  <line x1="630" y1="500" x2="1170" y2="500" stroke="#eee" stroke-width="1"/>
+  <!-- Pie chart representation -->
+  <circle cx="900" cy="650" r="100" fill="#1976d2" opacity="0.6"/>
+  <path d="M 900 550 A 100 100 0 0 1 1000 650 L 900 650 Z" fill="#4caf50" opacity="0.6"/>
+  <text x="900" y="750" font-family="Arial" font-size="12" fill="#666" text-anchor="middle">Dynamic: 60%</text>
+  <text x="900" y="770" font-family="Arial" font-size="12" fill="#666" text-anchor="middle">Static: 40%</text>
+  
+  <!-- 24 Hour Demand Graph -->
+  <rect x="20" y="788" width="1160" height="450" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="30" y="810" font-family="Arial" font-size="14" font-weight="bold" fill="#333">Electricity Demand - Last 24 Hours</text>
+  <line x1="30" y1="820" x2="1170" y2="820" stroke="#eee" stroke-width="1"/>
+  <!-- Line graph representation -->
+  <!-- Graph area: y from 840 to 1200, x from 50 to 1150 -->
+  <rect x="50" y="900" width="1100" height="300" fill="#f9f9f9" stroke="#e0e0e0" stroke-width="1"/>
+  <!-- Y-axis labels -->
+  <text x="40" y="900" font-family="Arial" font-size="10" fill="#666">5000</text>
+  <text x="40" y="1050" font-family="Arial" font-size="10" fill="#666">2500</text>
+  <text x="40" y="1200" font-family="Arial" font-size="10" fill="#666">0</text>
+  <!-- X-axis labels -->
+  <text x="50" y="1220" font-family="Arial" font-size="10" fill="#666">12 AM</text>
+  <text x="300" y="1220" font-family="Arial" font-size="10" fill="#666">6 AM</text>
+  <text x="550" y="1220" font-family="Arial" font-size="10" fill="#666">12 PM</text>
+  <text x="800" y="1220" font-family="Arial" font-size="10" fill="#666">6 PM</text>
+  <text x="1050" y="1220" font-family="Arial" font-size="10" fill="#666">12 AM</text>
+  <!-- Grid lines -->
+  <line x1="50" y1="900" x2="1150" y2="900" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="50" y1="1050" x2="1150" y2="1050" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="50" y1="1200" x2="1150" y2="1200" stroke="#e0e0e0" stroke-width="1"/>
+  <!-- Corrected line graph with proper coordinates (y: 900-1200, x: 50-1150) -->
+  <!-- Line showing demand pattern: low at night, rising in morning, peak at midday, dropping in evening -->
+  <!-- Y-axis: 1200 = 0 kW, 900 = 5000 kW (inverted: y = 1200 - (demand/5000)*300) -->
+  <!-- 24 hours represented across x: 50-1150 (1100px width, ~46px per hour) -->
+  <polyline points="50,1140 100,1150 150,1140 200,1110 250,1080 300,1032 350,980 400,960 450,948 500,972 550,990 600,1020 650,1050 700,1080 750,1100 800,1110 850,1120 900,1125 950,1130 1000,1135 1050,1140 1100,1145 1150,1140" 
+            fill="none" stroke="#1976d2" stroke-width="3"/>
+  <!-- Filled area under the line -->
+  <polyline points="50,1140 100,1150 150,1140 200,1110 250,1080 300,1032 350,980 400,960 450,948 500,972 550,990 600,1020 650,1050 700,1080 750,1100 800,1110 850,1120 900,1125 950,1130 1000,1135 1050,1140 1100,1145 1150,1140 1150,1200 50,1200" 
+            fill="#1976d2" opacity="0.1" stroke="none"/>
+  
+  <!-- Map -->
+  <rect x="20" y="1258" width="1160" height="450" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="30" y="1280" font-family="Arial" font-size="14" font-weight="bold" fill="#333">Wasatch Front Map</text>
+  <line x1="30" y1="1290" x2="1170" y2="1290" stroke="#eee" stroke-width="1"/>
+  <!-- Map representation -->
+  <rect x="50" y="1320" width="1100" height="360" fill="#e8f5e9" stroke="#4caf50" stroke-width="2" rx="4"/>
+  
+  <!-- Great Salt Lake -->
+  <ellipse cx="200" cy="1380" rx="100" ry="50" fill="#81d4fa" opacity="0.5" stroke="#0288d1" stroke-width="1"/>
+  <text x="200" y="1385" font-family="Arial" font-size="10" fill="#01579b" text-anchor="middle">Great Salt Lake</text>
+  
+  <!-- Mountains -->
+  <polygon points="1000,1320 1050,1350 1100,1380 1150,1410 1200,1440" fill="#8d6e63" opacity="0.6" stroke="#5d4037" stroke-width="1"/>
+  <text x="1050" y="1550" font-family="Arial" font-size="10" fill="#3e2723">Wasatch Mountains</text>
+  
+  <!-- Cities -->
+  <ellipse cx="400" cy="1420" rx="80" ry="50" fill="#4caf50" opacity="0.7" stroke="#388e3c" stroke-width="2"/>
+  <text x="400" y="1425" font-family="Arial" font-size="12" font-weight="bold" fill="white" text-anchor="middle">Salt Lake City</text>
+  
+  <ellipse cx="250" cy="1450" rx="70" ry="45" fill="#ff9800" opacity="0.7" stroke="#f57c00" stroke-width="2"/>
+  <text x="250" y="1455" font-family="Arial" font-size="11" font-weight="bold" fill="white" text-anchor="middle">West Valley</text>
+  
+  <ellipse cx="550" cy="1580" rx="75" ry="50" fill="#4caf50" opacity="0.7" stroke="#388e3c" stroke-width="2"/>
+  <text x="550" y="1585" font-family="Arial" font-size="12" font-weight="bold" fill="white" text-anchor="middle">Provo</text>
+  
+  <ellipse cx="300" cy="1350" rx="65" ry="40" fill="#4caf50" opacity="0.7" stroke="#388e3c" stroke-width="2"/>
+  <text x="300" y="1355" font-family="Arial" font-size="11" font-weight="bold" fill="white" text-anchor="middle">Ogden</text>
+  
+  <ellipse cx="450" cy="1550" rx="60" ry="40" fill="#ff9800" opacity="0.7" stroke="#f57c00" stroke-width="2"/>
+  <text x="450" y="1555" font-family="Arial" font-size="11" font-weight="bold" fill="white" text-anchor="middle">Sandy</text>
+  
+  <!-- I-15 Highway -->
+  <path d="M 300 1330 Q 400 1400 500 1500 Q 600 1580 700 1630" fill="none" stroke="#ff6f00" stroke-width="3" stroke-dasharray="5,5" opacity="0.6"/>
+  <text x="500" y="1520" font-family="Arial" font-size="10" fill="#e65100" font-weight="bold">I-15</text>
+  
+  <!-- Legend -->
+  <rect x="900" y="1320" width="240" height="120" fill="white" stroke="#ddd" stroke-width="1" rx="4" opacity="0.95"/>
+  <text x="1020" y="1340" font-family="Arial" font-size="12" font-weight="bold" fill="#333" text-anchor="middle">Legend</text>
+  <rect x="920" y="1350" width="15" height="15" fill="#4caf50"/>
+  <text x="945" y="1362" font-family="Arial" font-size="10" fill="#333">Low Impact</text>
+  <rect x="920" y="1375" width="15" height="15" fill="#ff9800"/>
+  <text x="945" y="1387" font-family="Arial" font-size="10" fill="#333">Medium Impact</text>
+  <rect x="920" y="1400" width="15" height="15" fill="#f44336"/>
+  <text x="945" y="1412" font-family="Arial" font-size="10" fill="#333">High Impact</text>
+  
+  <!-- Labels -->
+  <text x="600" y="1690" font-family="Arial" font-size="10" fill="#999" text-anchor="middle">Click on municipalities for details</text>
+</svg>
