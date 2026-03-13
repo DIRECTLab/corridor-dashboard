@@ -56,7 +56,14 @@
         </v-col>
         <v-col cols="12" md="6" class="d-flex">
           <v-card class="flex-grow-1">
-            <v-card-title>Cost per Mile Comparison</v-card-title>
+            <v-card-title>
+              <div class="d-flex justify-space-between align-center w-100">
+                <span>Cost per Mile Comparison</span>
+                <div class="text-h6 text-primary">
+                  Current: ${{ currentScenario.costPerMile.toFixed(2) }}/mile
+                </div>
+              </div>
+            </v-card-title>
             <v-card-text>
               <CostPerMileHistogram 
                 :currentScenario="currentScenario"
@@ -157,15 +164,17 @@ import DemandLineChart from '../components/DemandLineChart.vue'
 import WasatchMap from '../components/WasatchMap.vue'
 import { scenarioData, findScenario } from '../data/dataset.js'
 
-const selectedStationaryCost = ref(0.10)
-const selectedDynamicCost = ref(0.15)
-const selectedBatteryCost = ref(5000)
-const selectedEvAdoption = ref(25)
-
+// Options for the 4 scenario selector dropdowns, derived from CSV-backed dataset
 const stationaryCostOptions = scenarioData.stationaryChargingCostOptions
 const dynamicCostOptions = scenarioData.dynamicChargingCostOptions
 const batteryCostOptions = scenarioData.batteryCostOptions
 const evAdoptionOptions = scenarioData.evAdoptionPercentOptions
+
+// Initialize selects with the first available option from each list
+const selectedStationaryCost = ref(stationaryCostOptions[0] || '')
+const selectedDynamicCost = ref(dynamicCostOptions[0] || '')
+const selectedBatteryCost = ref(batteryCostOptions[0] || 0)
+const selectedEvAdoption = ref(evAdoptionOptions[0] || 0)
 
 const currentScenario = computed(() => {
   return findScenario(
