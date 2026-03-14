@@ -200,7 +200,7 @@ function showMunicipalityDialog(municipality) {
 
 <style scoped>
 .v-card {
-  height: 450px;
+  min-height: 450px;
   display: flex;
   flex-direction: column;
 }
@@ -209,11 +209,11 @@ function showMunicipalityDialog(municipality) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: visible;
 }
 
 .demand-chart-container {
-  overflow: hidden !important;
+  overflow: visible !important;
   padding: 16px;
 }
 
