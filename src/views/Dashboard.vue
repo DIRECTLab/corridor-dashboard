@@ -56,19 +56,36 @@
         </v-col>
         <v-col cols="12" md="6" class="d-flex">
           <v-card class="flex-grow-1">
-            <v-card-title>
-              <div class="d-flex justify-space-between align-center w-100">
-                <span>Cost per Mile Comparison</span>
-                <div class="text-h6 text-primary">
-                  Current: ${{ currentScenario.costPerMile.toFixed(2) }}/mile
-                </div>
-              </div>
-            </v-card-title>
+            <v-card-title>Cost per Mile Comparison</v-card-title>
             <v-card-text>
-              <CostPerMileHistogram 
-                :currentScenario="currentScenario"
-                :allScenarios="scenarioData.scenarios"
-              />
+              <v-row>
+                <v-col cols="12" md="4">
+                  <div class="d-flex align-center mb-1">
+                    <div class="text-subtitle-1 mr-1">Current scenario</div>
+                    <v-tooltip text="Compared against all other scenarios in the histogram on the right.">
+                      <template #activator="{ props }">
+                        <v-icon
+                          v-bind="props"
+                          size="18"
+                          color="primary"
+                          class="ml-1"
+                        >
+                          mdi-information-outline
+                        </v-icon>
+                      </template>
+                    </v-tooltip>
+                  </div>
+                  <div class="text-h5 text-primary font-weight-bold">
+                    ${{ currentScenario.costPerMile.toFixed(2) }}/mile
+                  </div>
+                </v-col>
+                <v-col cols="12" md="8">
+                  <CostPerMileHistogram 
+                    :currentScenario="currentScenario"
+                    :allScenarios="scenarioData.scenarios"
+                  />
+                </v-col>
+              </v-row>
             </v-card-text>
           </v-card>
         </v-col>
