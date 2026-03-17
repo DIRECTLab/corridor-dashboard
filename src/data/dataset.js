@@ -6,6 +6,107 @@ import scenarioCsv from './scenario_selector.csv?raw'
 import gridUpgradesCsv from './grid_upgrades_wasatch.csv?raw'
 import energyBalanceCsv from './energy_balance_wasatch.csv?raw'
 import loadProfilesCsv from './load_profiles_hourly.csv?raw'
+import locationCostCsv from './location_cost_totals.csv?raw'
+
+// Maps city slug (from LocId suffix) → Wasatch Front county name.
+// Cities in Tooele or other counties are assigned 'Other'.
+const CITY_TO_COUNTY = {
+  // Box Elder County
+  Brigham_City: 'Box Elder', Perry: 'Box Elder',
+  // Weber County
+  Ogden: 'Weber', South_Ogden: 'Weber', North_Ogden: 'Weber',
+  Harrisville: 'Weber', Roy: 'Weber', Riverdale: 'Weber',
+  West_Haven: 'Weber', Farr_West: 'Weber', Plain_City: 'Weber',
+  Pleasant_View: 'Weber', Marriott_Slaterville: 'Weber', Uintah: 'Weber',
+  // Davis County
+  Layton: 'Davis', Kaysville: 'Davis', Farmington: 'Davis',
+  Bountiful: 'Davis', West_Bountiful: 'Davis', North_Salt_Lake: 'Davis',
+  Woods_Cross: 'Davis', Centerville: 'Davis', Syracuse: 'Davis',
+  Clearfield: 'Davis', Sunset: 'Davis', Clinton: 'Davis',
+  South_Weber: 'Davis',
+  // Salt Lake County
+  Salt_Lake_City: 'Salt Lake', West_Valley_City: 'Salt Lake',
+  Taylorsville: 'Salt Lake', West_Jordan: 'Salt Lake', Sandy: 'Salt Lake',
+  South_Jordan: 'Salt Lake', Murray: 'Salt Lake', Millcreek: 'Salt Lake',
+  Holladay: 'Salt Lake', Cottonwood_Heights: 'Salt Lake',
+  South_Salt_Lake: 'Salt Lake', Riverton: 'Salt Lake', Draper: 'Salt Lake',
+  Midvale: 'Salt Lake', Kearns: 'Salt Lake', Magna_City: 'Salt Lake',
+  Bluffdale: 'Salt Lake',
+  // Utah County
+  Provo: 'Utah', Orem: 'Utah', Lehi: 'Utah', Pleasant_Grove: 'Utah',
+  American_Fork: 'Utah', Springville: 'Utah', Spanish_Fork: 'Utah',
+  Payson: 'Utah', Santaquin: 'Utah', Eagle_Mountain: 'Utah',
+  Saratoga_Springs: 'Utah', Vineyard: 'Utah', Cedar_Hills: 'Utah',
+  Lindon: 'Utah', Cedar_Fort: 'Utah', Salem: 'Utah', Rocky_Ridge: 'Utah',
+  // Tooele County (adjacent but not a main Wasatch Front county)
+  Tooele: 'Tooele', Grantsville: 'Tooele', Erda: 'Tooele',
+}
+
+// Extract the city slug from a LocId such as "stn_100_South_Ogden" → "South_Ogden"
+function citySlugFromLocId(locId) {
+  // Format is: <type>_<number>_<City_Name>  or just <type>_<number>
+  const parts = locId.split('_')
+  if (parts.length < 3) return null
+  return parts.slice(2).join('_')   // everything after the numeric segment
+}
+
+// Parse location_cost_totals.csv and return a nested map:
+//   { [sc]: { [countyName]: { totalNpcUsd, totalKwh, locations: [...] } } }
+function parseLocationCostTotals() {
+  const lines = locationCostCsv.trim().split('\n')
+  // Expected header: sc,LocId,net_present_kwh,total_npc_usd,breakeven_usd_per_kwh
+  if (lines.length < 2) return {}
+
+  const byScenario = {}
+
+  for (const line of lines.slice(1)) {
+    if (!line.trim()) continue
+    const cols = line.split(',')
+    const scId = cols[0]
+    const locId = cols[1]
+    const kwhVal = Number(cols[2]) || 0
+    const npcUsd = Number(cols[3]) || 0
+    const breakevenPerKwh = Number(cols[4]) || 0
+
+    const citySlug = citySlugFromLocId(locId)
+    if (!citySlug) continue                        // skip dwpt_ entries with no city
+
+    const county = CITY_TO_COUNTY[citySlug]
+    if (!county) continue                          // skip unknown locations
+
+    if (!byScenario[scId]) byScenario[scId] = {}
+    if (!byScenario[scId][county]) {
+      byScenario[scId][county] = { totalNpcUsd: 0, totalKwh: 0, locations: [] }
+    }
+
+    const entry = byScenario[scId][county]
+    entry.totalNpcUsd += npcUsd
+    entry.totalKwh    += kwhVal
+    entry.locations.push({
+      name: citySlug.replace(/_/g, ' '),
+      npcUsd,
+      kwhVal,
+      breakevenPerKwh,
+    })
+  }
+
+  // Sort each county's location list by NPC descending
+  for (const sc of Object.values(byScenario)) {
+    for (const county of Object.values(sc)) {
+      county.locations.sort((a, b) => b.npcUsd - a.npcUsd)
+      // Compute weighted-average breakeven
+      county.avgBreakevenPerKwh =
+        county.totalKwh > 0
+          ? county.locations.reduce((sum, l) => sum + l.breakevenPerKwh * l.kwhVal, 0) /
+            county.totalKwh
+          : 0
+    }
+  }
+
+  return byScenario
+}
+
+export const locationDataByScenario = parseLocationCostTotals()
 
 // Column indexes for scenario_selector.csv
 const COLS = {
