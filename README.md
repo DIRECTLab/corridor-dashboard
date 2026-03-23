@@ -1,4 +1,4 @@
-# Corridor Dashboard
+# Freight Electrification Explorer
 
 A Vue.js dashboard for visualizing electric vehicle infrastructure and grid requirements for the Wasatch Front region.
 

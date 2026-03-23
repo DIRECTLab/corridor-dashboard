@@ -3,7 +3,7 @@
     <v-app-bar-title class="d-flex align-center">
       <router-link to="/" class="d-flex align-center text-decoration-none" style="color: inherit;">
         <v-icon class="mr-2">mdi-chart-line</v-icon>
-        <span class="text-h6">Corridor Dashboard</span>
+        <span class="text-h6">Freight Electrification Explorer</span>
       </router-link>
     </v-app-bar-title>
     <v-spacer></v-spacer>

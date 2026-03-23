@@ -141,6 +141,44 @@ const COLS = {
   energy_frac_dwpt: 28
 }
 
+// ---------------------------------------------------------------------------
+// Human-readable label formatters for dropdown options
+// ---------------------------------------------------------------------------
+
+// "stn $2250/kW capex + $75/kW/yr opex"  →  "$2,250/kW capital · $75/kW/yr ops"
+function formatStationaryLabel(raw) {
+  const m = raw.match(/\$(\d+(?:\.\d+)?)\/kW[^+]*\+\s*\$(\d+(?:\.\d+)?)\/kW\/yr/)
+  if (!m) return raw
+  const capex = Number(m[1]).toLocaleString('en-US')
+  const opex  = Number(m[2]).toLocaleString('en-US')
+  return `$${capex} + $${opex}/yr`
+}
+
+// "dwpt $3920000/lane-mi capex + $240000/lane-mi/yr opex"
+//   →  "$3.92M/lane-mi capital  ·  $240K/yr ops"
+function formatDynamicLabel(raw) {
+  const cleaned = String(raw || '').replace(/^\s*dwpt\s+/i, '').trim()
+  const m = cleaned.match(/\$(-?\d+(?:\.\d+)?)\/lane-mi[^+]*\+\s*\$(-?\d+(?:\.\d+)?)\/lane-mi\/yr/)
+  if (!m) return cleaned || raw
+
+  const capexNum = Number(m[1])
+  const opexNum  = Number(m[2])
+
+  const fmtLarge = n => {
+    if (n >= 1_000_000) {
+      const v = n / 1_000_000
+      return `$${parseFloat(v.toFixed(2)).toLocaleString('en-US')}M`
+    }
+    if (n >= 1_000) {
+      const v = n / 1_000
+      return `$${parseFloat(v.toFixed(0)).toLocaleString('en-US')}K`
+    }
+    return `$${n.toLocaleString('en-US')}`
+  }
+
+  return `${fmtLarge(capexNum)} + ${fmtLarge(opexNum)}/yr`
+}
+
 // Generate base demand pattern used when no hourly profile is available
 function generateSyntheticDemandPattern(baseDemand) {
   return Array.from({ length: 24 }, (_, hour) => {
@@ -292,8 +330,8 @@ function parseScenariosFromCsv() {
       const cols = line.split(',')
 
       const scId = cols[COLS.sc]
-      const stationaryReadable = cols[COLS.stationary_cost_readable]
-      const dynamicReadable = cols[COLS.dynamic_cost_readable]
+      const stationaryReadable = formatStationaryLabel(cols[COLS.stationary_cost_readable])
+      const dynamicReadable    = formatDynamicLabel(cols[COLS.dynamic_cost_readable])
       const batteryKwh = Number(cols[COLS.batt_cost_kwh])
       const evPercent = Number(cols[COLS.electrification_percent])
 
@@ -333,7 +371,11 @@ function parseScenariosFromCsv() {
 
         // Values used for dropdown matching
         stationaryChargingCost: stationaryReadable,
+        stationaryCapexPerKw: Number(cols[COLS.stationary_capex_per_kw]) || 0,
+        stationaryOpexPerKwYear: Number(cols[COLS.stationary_opex_per_kw_year]) || 0,
         dynamicChargingCost: dynamicReadable,
+        dynamicCapexPerLaneMile: Number(cols[COLS.dynamic_capex_per_lane_mile]) || 0,
+        dynamicOpexPerLaneMileYear: Number(cols[COLS.dynamic_opex_per_lane_mile_year]) || 0,
         batteryCost: batteryKwh,
         evAdoptionPercent: evPercent,
 

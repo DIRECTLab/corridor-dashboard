@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 300px;">
+  <div style="height: 300px; cursor: pointer;">
     <Bar
       :data="chartData"
       :options="chartOptions"
@@ -9,6 +9,8 @@
 
 <script setup>
 import { computed } from 'vue'
+
+const emit = defineEmits(['select-scenario'])
 import { Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -63,13 +65,47 @@ const chartData = computed(() => {
   }
 })
 
-const chartOptions = {
+const sortedScenarios = computed(() =>
+  [...(props.allScenarios || [])].sort((a, b) => a.costPerMile - b.costPerMile)
+)
+
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
+  onClick: (event, elements, chart) => {
+    if (elements.length > 0) {
+      const dataIndex = elements[0].index
+      const scenario = sortedScenarios.value[dataIndex]
+      if (scenario) emit('select-scenario', scenario)
+    }
+  },
   plugins: {
     legend: {
       display: true,
-      position: 'top'
+      position: 'top',
+      labels: {
+        generateLabels: function(chart) {
+          return [
+            {
+              text: 'Current scenario',
+              fillStyle: 'rgba(25, 118, 210, 0.8)',
+              strokeStyle: 'rgba(25, 118, 210, 1)',
+              lineWidth: 1,
+              hidden: false
+            },
+            {
+              text: 'Other scenarios',
+              fillStyle: 'rgba(158, 158, 158, 0.8)',
+              strokeStyle: 'rgba(158, 158, 158, 1)',
+              lineWidth: 1,
+              hidden: false
+            }
+          ]
+        }
+      },
+      onClick: function() {
+        // Prevent toggling; legend is display-only
+      }
     },
     tooltip: {
       callbacks: {
@@ -82,11 +118,7 @@ const chartOptions = {
   scales: {
     x: {
       ticks: {
-        maxRotation: 90,
-        minRotation: 90,
-        font: {
-          size: 8
-        }
+        display: false
       }
     },
     y: {
@@ -98,5 +130,5 @@ const chartOptions = {
       }
     }
   }
-}
+}))
 </script>
