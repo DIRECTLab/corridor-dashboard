@@ -15,71 +15,79 @@
         </v-col>
       </v-row>
 
-      <!-- Scenario Selector -->
+      <!-- Key takeaway -->
       <v-row class="mb-4">
-        <v-col cols="12" md="3">
-          <v-select
-            v-model="selectedStationaryCost"
-            :items="stationaryCostSelectItems"
-            item-title="title"
-            item-value="value"
-            label="Fixed Charging Station Cost"
-            variant="outlined"
-            density="compact"
-            hide-details
-          ></v-select>
-        </v-col>
-        <v-col cols="12" md="3">
-          <v-select
-            v-model="selectedDynamicCost"
-            :items="dynamicCostSelectItems"
-            item-title="title"
-            item-value="value"
-            label="Road-Embedded (Wireless) Charging Cost"
-            variant="outlined"
-            density="compact"
-            hide-details
-          ></v-select>
-        </v-col>
-        <v-col cols="12" md="3">
-          <v-select
-            v-model="selectedBatteryCost"
-            :items="batteryCostSelectItems"
-            item-title="title"
-            item-value="value"
-            label="EV Battery Cost"
-            variant="outlined"
-            density="compact"
-            hide-details
-          ></v-select>
-        </v-col>
-        <v-col cols="12" md="3">
-          <v-select
-            v-model="selectedEvAdoption"
-            :items="evAdoptionSelectItems"
-            item-title="title"
-            item-value="value"
-            label="Fleet Electrification Rate"
-            variant="outlined"
-            density="compact"
-            hide-details
-          ></v-select>
+        <v-col cols="12">
+          <v-alert type="success" variant="tonal" density="compact" icon="mdi-lightbulb-on-outline">
+            <strong>Key takeaway:</strong> {{ keyTakeawayText }}
+          </v-alert>
         </v-col>
       </v-row>
 
-      <!-- Selected scenario inputs -->
+      <!-- Selected scenario inputs + county coverage map -->
       <v-row class="mb-4">
-        <v-col cols="12">
-          <v-card class="scenario-inputs-card">
+        <v-col cols="12" md="6" class="d-flex">
+          <v-card class="scenario-inputs-card flex-grow-1">
             <v-card-title class="text-subtitle-1 font-weight-medium">
               Selected scenario inputs
             </v-card-title>
             <v-card-subtitle>Assumptions for the current scenario</v-card-subtitle>
             <v-card-text class="pt-2">
+              <v-row class="mb-3" dense>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="selectedStationaryCost"
+                    :items="stationaryCostSelectItems"
+                    item-title="title"
+                    item-value="value"
+                    label="Plug-In Charging Cost Tier"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="selectedDynamicCost"
+                    :items="dynamicCostSelectItems"
+                    item-title="title"
+                    item-value="value"
+                    label="In-Road Charging Cost Tier"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="selectedBatteryCost"
+                    :items="batteryCostSelectItems"
+                    item-title="title"
+                    item-value="value"
+                    label="Battery Cost Tier"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="selectedEvAdoption"
+                    :items="evAdoptionSelectItems"
+                    item-title="title"
+                    item-value="value"
+                    label="Fleet Electrification Tier"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                  ></v-select>
+                </v-col>
+              </v-row>
+
               <v-row dense>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Fixed charging — Capex
+                    Plug-in charging upfront cost (capex)
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -91,7 +99,7 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Fixed charging — Opex
+                    Plug-in charging annual operations (opex)
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -103,7 +111,7 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Road-embedded — Capex
+                    In-road charging upfront cost (capex)
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -115,7 +123,7 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Road-embedded — Opex
+                    In-road charging annual operations (opex)
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -153,6 +161,27 @@
             </v-card-text>
           </v-card>
         </v-col>
+        <v-col cols="12" md="6" class="d-flex">
+          <v-card class="flex-grow-1 top-map-card">
+            <v-card-title class="d-flex align-center">
+              Wasatch Front Infrastructure Map
+              <v-tooltip location="bottom" max-width="320">
+                <template #activator="{ props }">
+                  <v-icon v-bind="props" size="18" color="grey" class="ml-2">mdi-information-outline</v-icon>
+                </template>
+                Blue dots are cities. Dot size reflects total kW: plug-in capacity at that city plus
+                in-road (dynamic) capacity attributed to the nearest city from each road segment.
+              </v-tooltip>
+            </v-card-title>
+            <v-card-subtitle>Total kW per city (plug-in + in-road, grouped by city)</v-card-subtitle>
+            <v-card-text>
+              <CityInfrastructureMap
+                :scenario="currentScenario"
+                :height="320"
+              />
+            </v-card-text>
+          </v-card>
+        </v-col>
       </v-row>
 
       <!-- Infrastructure and Histogram Cards -->
@@ -160,17 +189,17 @@
         <v-col cols="12" md="6" class="d-flex">
           <v-card class="flex-grow-1">
             <v-card-title class="d-flex align-center">
-              Estimated Grid Upgrades Required
+              Total Charging Capacity
               <v-tooltip location="bottom" max-width="320">
                 <template #activator="{ props }">
                   <v-icon v-bind="props" size="18" color="grey" class="ml-2">mdi-information-outline</v-icon>
                 </template>
-                The additional electrical infrastructure needed regionwide to support this level of EV
-                adoption — transformers, substations, and distribution lines. Your city typically
-                cost-shares major grid work with the utility.
+                The peak simultaneous charging power available across all locations in this scenario,
+                measured in megawatts (MW). For reference: a home Level 2 charger delivers ~0.007–0.011 MW;
+                a public DC fast charger delivers ~0.05–0.35 MW.
               </v-tooltip>
             </v-card-title>
-            <v-card-subtitle>Total upgrades required to the Wasatch Front grid</v-card-subtitle>
+            <v-card-subtitle>Peak megawatts available across the region</v-card-subtitle>
             <v-card-text>
               <v-row>
                 <v-col cols="12" md="4">
@@ -183,12 +212,12 @@
                     </v-tooltip>
                   </div>
                   <div class="text-h5 text-primary font-weight-bold mb-1">
-                    {{ formatPowerMw(currentScenario.gridInfrastructureUpgrades.kw) }} of additional capacity
+                    {{ formatPowerMw(currentScenario.totalChargeCapacityKw) }}
                   </div>
-                  <div class="text-caption text-warning">~ Model estimate</div>
+                  <div class="text-caption text-warning mt-1">~ Model estimate</div>
                 </v-col>
                 <v-col cols="12" md="8">
-                  <GridUpgradeHistogram
+                  <ChargingCapacityHistogram
                     :currentScenario="currentScenario"
                     :allScenarios="scenarioData.scenarios"
                     @select-scenario="selectScenario"
@@ -251,17 +280,17 @@
         <v-col cols="12" md="6" class="d-flex">
           <v-card class="flex-grow-1">
             <v-card-title class="d-flex align-center">
-              Total Charging Capacity
+              Additional Grid Capacity Needed (MW)
               <v-tooltip location="bottom" max-width="320">
                 <template #activator="{ props }">
                   <v-icon v-bind="props" size="18" color="grey" class="ml-2">mdi-information-outline</v-icon>
                 </template>
-                The peak simultaneous charging power available across all locations in this scenario,
-                measured in megawatts (MW). For reference: a home Level 2 charger delivers ~0.007–0.011 MW;
-                a public DC fast charger delivers ~0.05–0.35 MW.
+                Modeled additional electrical capacity (MW) for the Wasatch Front to support this
+                scenario — substations, transformers, and distribution capacity. Municipalities often
+                cost-share major grid upgrades with the utility.
               </v-tooltip>
             </v-card-title>
-            <v-card-subtitle>Peak megawatts available across the region</v-card-subtitle>
+            <v-card-subtitle>Modeled incremental capacity for the Wasatch Front grid</v-card-subtitle>
             <v-card-text>
               <v-row>
                 <v-col cols="12" md="4">
@@ -274,12 +303,12 @@
                     </v-tooltip>
                   </div>
                   <div class="text-h5 text-primary font-weight-bold">
-                    {{ formatPowerMw(currentScenario.totalChargeCapacityKw) }}
+                    {{ formatPowerMw(currentScenario.gridInfrastructureUpgrades.kw) }} additional grid capacity
                   </div>
-                  <div class="text-caption text-warning mt-1">~ Model estimate</div>
+                  <div class="text-caption text-warning">~ Model estimate</div>
                 </v-col>
                 <v-col cols="12" md="8">
-                  <ChargingCapacityHistogram
+                  <GridUpgradeHistogram
                     :currentScenario="currentScenario"
                     :allScenarios="scenarioData.scenarios"
                     @select-scenario="selectScenario"
@@ -340,27 +369,82 @@
         </v-col>
       </v-row>
 
-      <!-- Map -->
+      <!-- County breakdown -->
       <v-row>
         <v-col cols="12">
           <v-card>
             <v-card-title class="d-flex align-center">
-              Infrastructure by County
+              County Infrastructure Summary
               <v-tooltip location="bottom" max-width="320">
                 <template #activator="{ props }">
                   <v-icon v-bind="props" size="18" color="grey" class="ml-2">mdi-information-outline</v-icon>
                 </template>
-                Click any county for an energy delivery summary for that county under the current
-                scenario.
+                Select a county to view model-estimated energy and cost metrics for the current scenario.
               </v-tooltip>
             </v-card-title>
-            <v-card-subtitle>Click any county for an energy summary</v-card-subtitle>
+            <v-card-subtitle>Select a county to view its metrics</v-card-subtitle>
             <v-card-text>
-              <WasatchMap
-                :scenario="currentScenario"
-                :countyData="currentCountyData"
-                @municipality-clicked="showMunicipalityDialog"
+              <v-select
+                v-model="selectedCounty"
+                :items="countySelectItems"
+                item-title="title"
+                item-value="value"
+                label="County"
+                variant="outlined"
+                density="compact"
+                hide-details
+                class="mb-4"
               />
+
+              <v-alert
+                v-if="!selectedCountyData"
+                type="info"
+                variant="tonal"
+                density="comfortable"
+              >
+                No county-level data is available for this selection.
+              </v-alert>
+
+              <template v-else>
+                <v-row dense>
+                  <v-col cols="12" md="6">
+                    <v-card variant="tonal" class="pa-3 county-metric-card">
+                      <div class="text-caption text-medium-emphasis">Total Energy Delivered (lifetime)</div>
+                      <div class="text-h6 font-weight-bold mt-1">
+                        {{ Math.round(selectedCountyData.totalKwh / 1000).toLocaleString() }} MWh
+                      </div>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-card variant="tonal" class="pa-3 county-metric-card">
+                      <div class="text-caption text-medium-emphasis">Avg. Cost per kWh Delivered</div>
+                      <div class="text-h6 font-weight-bold mt-1">
+                        ${{ selectedCountyData.avgBreakevenPerKwh.toFixed(3) }}/kWh
+                      </div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+
+                <div class="text-subtitle-2 font-weight-medium mt-4 mb-2">
+                  Top locations by net present cost
+                </div>
+                <v-table density="compact">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Location</th>
+                      <th class="text-right">Lifetime Energy (MWh)</th>
+                      <th class="text-right">Breakeven ($/kWh)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="loc in selectedCountyTopLocations" :key="loc.name">
+                      <td>{{ loc.name }}</td>
+                      <td class="text-right">{{ Math.round(loc.kwhVal / 1000).toLocaleString() }}</td>
+                      <td class="text-right">${{ loc.breakevenPerKwh.toFixed(3) }}</td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </template>
             </v-card-text>
           </v-card>
         </v-col>
@@ -368,89 +452,25 @@
       </v-container>
     </div>
 
-    <!-- Model Estimates Disclaimer Dialog -->
-    <v-dialog v-model="modelEstimateDialog" max-width="480" persistent>
+    <v-dialog v-model="gettingStartedDialog" max-width="560" content-class="quick-start-dialog-content">
       <v-card>
         <v-card-title class="d-flex align-center pt-4">
-          <v-icon color="warning" class="mr-2">mdi-alert-circle-outline</v-icon>
-          Model-Based Estimates
+          <v-icon color="primary" class="mr-2">mdi-map-marker-path</v-icon>
+          Quick Start
         </v-card-title>
         <v-card-text class="pt-2">
-          All figures shown are projections derived from planning assumptions and scenario inputs —
-          they are not measured or confirmed actuals. They are intended to support comparative
-          analysis and long-range planning, not to serve as final cost commitments.
+          <div class="text-body-2 mb-3">
+            Use these three steps to explore scenarios and county-level results.
+          </div>
+          <div class="d-flex flex-column ga-2 align-start">
+            <v-chip size="small" color="primary" variant="tonal">1. Choose assumptions</v-chip>
+            <v-chip size="small" color="primary" variant="tonal">2. Compare regional outcomes</v-chip>
+            <v-chip size="small" color="primary" variant="tonal">3. Review county details</v-chip>
+          </div>
         </v-card-text>
         <v-card-actions class="pb-4">
           <v-spacer></v-spacer>
-          <v-btn color="primary" variant="flat" @click="modelEstimateDialog = false">Got it</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- County Dialog -->
-    <v-dialog v-model="municipalityDialog" max-width="680" scrollable>
-      <v-card v-if="selectedMunicipality">
-        <v-card-title class="text-h6 py-3 px-4 bg-primary text-white">
-          {{ selectedMunicipality.name }}
-        </v-card-title>
-
-        <!-- No data case (e.g. Box Elder has no locations in the dataset) -->
-        <v-card-text v-if="!selectedMunicipality.data" class="pa-4">
-          <p class="text-body-1 text-medium-emphasis">
-            No charging location data available for this county in the current scenario.
-          </p>
-        </v-card-text>
-
-        <v-card-text v-else class="pa-4 pt-5">
-          <!-- County summary -->
-          <v-row dense>
-            <v-col cols="12" class="pb-1 pt-1 d-flex flex-column align-center">
-              <div class="d-flex flex-column align-center justify-center" style="min-height: 100px;">
-                <div class="text-caption text-medium-emphasis text-center">
-                  Total Energy Delivered (lifetime)
-                  <v-tooltip location="top" max-width="260">
-                    <template #activator="{ props }">
-                      <v-icon v-bind="props" size="14" color="grey">mdi-information-outline</v-icon>
-                    </template>
-                    Total kilowatt-hours of electricity delivered to EVs across all charging
-                    locations in this county over the system lifetime, discounted to present value.
-                  </v-tooltip>
-                </div>
-                <div class="text-h5 font-weight-bold text-center">
-                  {{ Math.round(selectedMunicipality.data.totalKwh / 1000).toLocaleString() }} MWh
-                </div>
-              </div>
-            </v-col>
-            <v-col cols="12" class="text-center">
-              <div class="d-flex flex-column align-center">
-                <div class="text-caption text-medium-emphasis mb-1 text-center">
-                  Avg. Cost per kWh Delivered
-                </div>
-                <div class="d-flex align-center justify-center">
-                  <span class="text-body-2 font-weight-bold">${{ selectedMunicipality.data.avgBreakevenPerKwh.toFixed(3) }}/kWh</span>
-                  <v-tooltip :text="costDisclaimer" location="top" max-width="280">
-                    <template #activator="{ props }">
-                      <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
-                    </template>
-                  </v-tooltip>
-                </div>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card-text>
-
-        <v-divider />
-        <v-card-text class="pa-3 bg-grey-lighten-4">
-          <div class="d-flex align-center">
-            <v-icon size="14" color="warning" class="mr-1">mdi-alert-circle-outline</v-icon>
-            <span class="text-caption text-medium-emphasis">
-              All figures are model-based estimates for planning purposes only — not confirmed cost commitments.
-            </span>
-          </div>
-        </v-card-text>
-        <v-card-actions class="px-4 pb-3">
-          <v-spacer></v-spacer>
-          <v-btn color="primary" variant="text" @click="municipalityDialog = false">Close</v-btn>
+          <v-btn color="primary" variant="flat" @click="gettingStartedDialog = false">Got it</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -458,14 +478,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import Navbar from '../components/Navbar.vue'
 import CostPerMileHistogram from '../components/CostPerMileHistogram.vue'
 import GridUpgradeHistogram from '../components/GridUpgradeHistogram.vue'
 import ChargingCapacityHistogram from '../components/ChargingCapacityHistogram.vue'
 import ChargingPieChart from '../components/ChargingPieChart.vue'
 import DemandLineChart from '../components/DemandLineChart.vue'
-import WasatchMap from '../components/WasatchMap.vue'
+import CityInfrastructureMap from '../components/CityInfrastructureMap.vue'
 import { scenarioData, findScenario, locationDataByScenario } from '../data/dataset.js'
 
 // Options for the 4 scenario selector dropdowns, derived from CSV-backed dataset
@@ -479,6 +499,7 @@ const selectedStationaryCost = ref(stationaryCostSelectItems[0]?.value ?? '')
 const selectedDynamicCost = ref(dynamicCostSelectItems[0]?.value ?? '')
 const selectedBatteryCost = ref(batteryCostSelectItems[0]?.value ?? 0)
 const selectedEvAdoption = ref(evAdoptionSelectItems[0]?.value ?? 0)
+const gettingStartedDialog = ref(true)
 
 const currentScenario = computed(() => {
   return findScenario(
@@ -495,11 +516,34 @@ const currentCountyData = computed(() => {
   return locationDataByScenario[scId] || {}
 })
 
-const municipalityDialog = ref(false)
-const selectedMunicipality = ref(null)
-const modelEstimateDialog = ref(true)
+const selectedCounty = ref(null)
+
+const countySelectItems = computed(() => {
+  return Object.keys(currentCountyData.value)
+    .sort((a, b) => a.localeCompare(b))
+    .map(county => ({
+      title: `${county} County`,
+      value: county,
+    }))
+})
+
+const selectedCountyData = computed(() => {
+  if (!selectedCounty.value) return null
+  return currentCountyData.value[selectedCounty.value] || null
+})
+
+const selectedCountyTopLocations = computed(() => {
+  if (!selectedCountyData.value?.locations) return []
+  return selectedCountyData.value.locations.slice(0, 10)
+})
 
 const costDisclaimer = 'Costs shown here should be used as rough estimates for comparing scenarios, not as actual budget figures for a project.'
+const keyTakeawayText = computed(() => {
+  const chargeCapacity = formatPowerMw(currentScenario.value.totalChargeCapacityKw)
+  const gridMw = formatPowerMw(currentScenario.value.gridInfrastructureUpgrades.kw)
+  const costPerMile = currentScenario.value.costPerMile.toFixed(2)
+  return `This scenario delivers ${chargeCapacity} of total charging capacity, needs about ${gridMw} of additional grid capacity, and is estimated at $${costPerMile} per mile.`
+})
 
 function formatCurrency(value) {
   return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -510,17 +554,27 @@ function formatPowerMw(kw) {
   return `${mw.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 0 })} MW`
 }
 
-function showMunicipalityDialog(municipality) {
-  selectedMunicipality.value = municipality
-  municipalityDialog.value = true
-}
-
 function selectScenario(scenario) {
   selectedStationaryCost.value = scenario.stationaryChargingCost
   selectedDynamicCost.value = scenario.dynamicChargingCost
   selectedBatteryCost.value = scenario.batteryCost
   selectedEvAdoption.value = scenario.evAdoptionPercent
 }
+
+watch(
+  countySelectItems,
+  (items) => {
+    if (!items.length) {
+      selectedCounty.value = null
+      return
+    }
+    const selectedStillExists = items.some(i => i.value === selectedCounty.value)
+    if (!selectedStillExists) {
+      selectedCounty.value = items[0].value
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
@@ -553,6 +607,14 @@ function selectScenario(scenario) {
 .scenario-inputs-card {
   min-height: auto;
 }
+
+.top-map-card {
+  min-height: auto;
+}
+
+.county-metric-card {
+  min-height: 120px;
+}
 </style>
 
 <style>
@@ -560,5 +622,9 @@ function selectScenario(scenario) {
 .no-scroll-tooltip {
   overflow: visible !important;
   max-height: none !important;
+}
+
+.quick-start-dialog-content {
+  max-height: 320px;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div ref="containerRef" class="wasatch-map-container">
+  <div ref="containerRef" class="wasatch-map-container" :style="{ height: `${props.height}px` }">
     <div v-if="loading" class="map-loading">
       <v-progress-circular indeterminate color="primary" />
       <span class="ml-2">Loading map…</span>
@@ -17,6 +17,9 @@ const props = defineProps({
   scenario: Object,
   // countyData: { [countyName]: { totalNpcUsd, totalKwh, avgBreakevenPerKwh, locations } }
   countyData: { type: Object, default: () => ({}) },
+  interactive: { type: Boolean, default: true },
+  highlightDataCounties: { type: Boolean, default: false },
+  height: { type: Number, default: 500 },
 })
 const emit = defineEmits(['municipality-clicked'])
 
@@ -27,14 +30,15 @@ let resizeObserver = null
 
 // FIPS codes for Wasatch Front counties (Box Elder excluded - no data)
 const WASATCH_COUNTIES = {
+  '49003': 'Box Elder',
   '49057': 'Weber',
   '49011': 'Davis',
   '49035': 'Salt Lake',
   '49049': 'Utah',
 }
 
-// Uniform light blue fill for all counties
 const COUNTY_FILL = '#90caf9'
+const COUNTY_FILL_NO_DATA = '#cfd8dc'
 
 let cachedFeatures = null   // reuse across redraws
 
@@ -81,24 +85,32 @@ async function renderMap() {
   const projection = d3.geoMercator().fitExtent([[0, 0], [iw, ih]], featureCollection)
   const path = d3.geoPath().projection(projection)
 
+  const countiesWithData = new Set(Object.keys(props.countyData || {}))
+
   // County polygons
   g.selectAll('path.county')
     .data(features)
     .join('path')
     .attr('class', 'county')
     .attr('d', path)
-    .attr('fill', COUNTY_FILL)
+    .attr('fill', d => {
+      if (!props.highlightDataCounties) return COUNTY_FILL
+      return countiesWithData.has(d.properties.name) ? COUNTY_FILL : COUNTY_FILL_NO_DATA
+    })
     .attr('stroke', '#ffffff')
     .attr('stroke-width', 1.5)
     .attr('opacity', 0.85)
-    .style('cursor', 'pointer')
+    .style('cursor', props.interactive ? 'pointer' : 'default')
     .on('mouseover', function () {
+      if (!props.interactive) return
       d3.select(this).attr('opacity', 1).attr('stroke-width', 3).attr('stroke', '#0d47a1')
     })
     .on('mouseout', function () {
+      if (!props.interactive) return
       d3.select(this).attr('opacity', 0.85).attr('stroke-width', 1.5).attr('stroke', '#ffffff')
     })
     .on('click', (event, d) => {
+      if (!props.interactive) return
       const countyName = d.properties.name
       const data = props.countyData[countyName] || null
       emit('municipality-clicked', { name: countyName + ' County', data })
