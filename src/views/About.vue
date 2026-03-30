@@ -39,7 +39,7 @@
                   <v-card-text>
                     <ul class="text-body-1 ma-0 pl-4">
                       <li><strong>Scenario Configurations:</strong> Multiple combinations of charging costs, battery prices, and EV adoption rates</li>
-                      <li><strong>Grid Infrastructure Data:</strong> Detailed information about required grid upgrades in kilowatts and dollars</li>
+                      <li><strong>Grid Infrastructure Data:</strong> Detailed information about required grid upgrades in megawatts and dollars</li>
                       <li><strong>Energy Balance:</strong> Stationary and dynamic charging energy requirements across the region</li>
                       <li><strong>Hourly Load Profiles:</strong> 24-hour electricity demand patterns for different scenarios</li>
                       <li><strong>Location-Specific Data:</strong> Infrastructure costs and requirements for individual municipalities</li>
@@ -55,7 +55,7 @@
                   <v-card-text>
                     <ul class="text-body-1 ma-0 pl-4">
                       <li><strong>Scenario Comparison:</strong> Compare cost per mile across all 54 scenarios to see how your selected scenario performs</li>
-                      <li><strong>Infrastructure Metrics:</strong> View total grid upgrade requirements in both dollar amounts and capacity (kW)</li>
+                      <li><strong>Infrastructure Metrics:</strong> View estimated grid upgrades required (MW of additional capacity)</li>
                       <li><strong>Charging Distribution:</strong> Understand the split between stationary and dynamic charging infrastructure</li>
                       <li><strong>Demand Forecasting:</strong> See how electricity demand varies throughout the day</li>
                       <li><strong>Municipality Analysis:</strong> Click on cities in the map to see location-specific infrastructure needs</li>

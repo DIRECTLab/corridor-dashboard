@@ -141,6 +141,73 @@ const COLS = {
   energy_frac_dwpt: 28
 }
 
+// stationary_cost_case in scenario CSV: 0 = highest cost tier, 1 = middle, 2 = lowest.
+const STATIONARY_CASE_TIER_LABEL = { 0: 'Current', 1: 'Middle', 2: 'Optimal' }
+const STATIONARY_COST_SELECT_ORDER = [2, 1, 0]
+
+function buildStationaryChargingCostSelectItems(scenarios) {
+  const byCase = new Map()
+  for (const s of scenarios) {
+    if (!byCase.has(s.stationaryCostCase)) {
+      byCase.set(s.stationaryCostCase, s.stationaryChargingCost)
+    }
+  }
+  return STATIONARY_COST_SELECT_ORDER.filter(c => byCase.has(c)).map(c => ({
+    title: STATIONARY_CASE_TIER_LABEL[c],
+    value: byCase.get(c)
+  }))
+}
+
+// dynamic_cost_case: same encoding as stationary — 0 highest cost, 1 middle, 2 lowest.
+const DYNAMIC_CASE_TIER_LABEL = { 0: 'Current', 1: 'Middle', 2: 'Optimal' }
+const DYNAMIC_COST_SELECT_ORDER = [2, 1, 0]
+
+function buildDynamicChargingCostSelectItems(scenarios) {
+  const byCase = new Map()
+  for (const s of scenarios) {
+    if (!byCase.has(s.dynamicCostCase)) {
+      byCase.set(s.dynamicCostCase, s.dynamicChargingCost)
+    }
+  }
+  return DYNAMIC_COST_SELECT_ORDER.filter(c => byCase.has(c)).map(c => ({
+    title: DYNAMIC_CASE_TIER_LABEL[c],
+    value: byCase.get(c)
+  }))
+}
+
+/** Assorted numeric levers sorted ascending by "expense" → Optimal … Middle … Current */
+function tierLabelsForExpenseOrder(count) {
+  if (count <= 0) return []
+  if (count === 1) return ['Optimal']
+  if (count === 2) return ['Optimal', 'Current']
+  return ['Optimal', 'Middle', 'Current']
+}
+
+function buildBatteryCostSelectItems(scenarios) {
+  const vals = [...new Set(scenarios.map(s => s.batteryCost))].sort((a, b) => a - b)
+  const labels = tierLabelsForExpenseOrder(vals.length)
+  return vals.map((v, i) => ({ title: labels[i], value: v }))
+}
+
+function buildEvAdoptionSelectItems(scenarios) {
+  const vals = [...new Set(scenarios.map(s => s.evAdoptionPercent))].sort((a, b) => a - b)
+  const labels = tierLabelsForExpenseOrder(vals.length)
+  return vals.map((v, i) => ({ title: labels[i], value: v }))
+}
+
+function attachBatteryAndEvTierLabels(scenarios) {
+  const batVals = [...new Set(scenarios.map(s => s.batteryCost))].sort((a, b) => a - b)
+  const batLabels = tierLabelsForExpenseOrder(batVals.length)
+  const batMap = Object.fromEntries(batVals.map((v, i) => [v, batLabels[i]]))
+  const evVals = [...new Set(scenarios.map(s => s.evAdoptionPercent))].sort((a, b) => a - b)
+  const evLabels = tierLabelsForExpenseOrder(evVals.length)
+  const evMap = Object.fromEntries(evVals.map((v, i) => [v, evLabels[i]]))
+  for (const s of scenarios) {
+    s.batteryCostTierLabel = batMap[s.batteryCost] ?? 'Middle'
+    s.evAdoptionTierLabel = evMap[s.evAdoptionPercent] ?? 'Middle'
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Human-readable label formatters for dropdown options
 // ---------------------------------------------------------------------------
@@ -316,10 +383,10 @@ function parseScenariosFromCsv() {
     // If the header doesn't match, just return an empty dataset to avoid runtime errors
     return {
       scenarios: [],
-      stationaryChargingCostOptions: [],
-      dynamicChargingCostOptions: [],
-      batteryCostOptions: [],
-      evAdoptionPercentOptions: []
+      stationaryChargingCostSelectItems: [],
+      dynamicChargingCostSelectItems: [],
+      batteryCostSelectItems: [],
+      evAdoptionPercentSelectItems: []
     }
   }
 
@@ -330,8 +397,10 @@ function parseScenariosFromCsv() {
       const cols = line.split(',')
 
       const scId = cols[COLS.sc]
+      const stationaryCostCase = Number(cols[COLS.stationary_cost_case])
       const stationaryReadable = formatStationaryLabel(cols[COLS.stationary_cost_readable])
-      const dynamicReadable    = formatDynamicLabel(cols[COLS.dynamic_cost_readable])
+      const dynamicCostCase = Number(cols[COLS.dynamic_cost_case])
+      const dynamicReadable = formatDynamicLabel(cols[COLS.dynamic_cost_readable])
       const batteryKwh = Number(cols[COLS.batt_cost_kwh])
       const evPercent = Number(cols[COLS.electrification_percent])
 
@@ -371,9 +440,15 @@ function parseScenariosFromCsv() {
 
         // Values used for dropdown matching
         stationaryChargingCost: stationaryReadable,
+        stationaryCostCase: Number.isFinite(stationaryCostCase) ? stationaryCostCase : 0,
+        stationaryCostTierLabel:
+          STATIONARY_CASE_TIER_LABEL[stationaryCostCase] ?? 'Middle',
         stationaryCapexPerKw: Number(cols[COLS.stationary_capex_per_kw]) || 0,
         stationaryOpexPerKwYear: Number(cols[COLS.stationary_opex_per_kw_year]) || 0,
         dynamicChargingCost: dynamicReadable,
+        dynamicCostCase: Number.isFinite(dynamicCostCase) ? dynamicCostCase : 0,
+        dynamicCostTierLabel:
+          DYNAMIC_CASE_TIER_LABEL[dynamicCostCase] ?? 'Middle',
         dynamicCapexPerLaneMile: Number(cols[COLS.dynamic_capex_per_lane_mile]) || 0,
         dynamicOpexPerLaneMileYear: Number(cols[COLS.dynamic_opex_per_lane_mile_year]) || 0,
         batteryCost: batteryKwh,
@@ -408,29 +483,22 @@ function parseScenariosFromCsv() {
       }
     })
 
-  // Build dropdown options from unique values in the CSV
-  const stationaryChargingCostOptions = Array.from(
-    new Set(scenarios.map(s => s.stationaryChargingCost))
-  )
-  const dynamicChargingCostOptions = Array.from(
-    new Set(scenarios.map(s => s.dynamicChargingCost))
-  )
-  const batteryCostOptions = Array.from(new Set(scenarios.map(s => s.batteryCost))).sort(
-    (a, b) => a - b
-  )
-  const evAdoptionPercentOptions = Array.from(
-    new Set(scenarios.map(s => s.evAdoptionPercent))
-  ).sort((a, b) => a - b)
+  attachBatteryAndEvTierLabels(scenarios)
+
+  const stationaryChargingCostSelectItems = buildStationaryChargingCostSelectItems(scenarios)
+  const dynamicChargingCostSelectItems = buildDynamicChargingCostSelectItems(scenarios)
+  const batteryCostSelectItems = buildBatteryCostSelectItems(scenarios)
+  const evAdoptionPercentSelectItems = buildEvAdoptionSelectItems(scenarios)
 
   // Sort scenarios by cost per mile from smallest to largest
   scenarios.sort((a, b) => a.costPerMile - b.costPerMile)
 
   return {
     scenarios,
-    stationaryChargingCostOptions,
-    dynamicChargingCostOptions,
-    batteryCostOptions,
-    evAdoptionPercentOptions
+    stationaryChargingCostSelectItems,
+    dynamicChargingCostSelectItems,
+    batteryCostSelectItems,
+    evAdoptionPercentSelectItems
   }
 }
 

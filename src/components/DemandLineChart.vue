@@ -76,7 +76,7 @@ const chartData = computed(() => {
     if (minScenario?.electricityDemand24h && minScenario.id !== props.currentScenario?.id) {
       datasets.push({
         label: 'Min scenario',
-        data: minScenario.electricityDemand24h.map(d => d.demand),
+        data: minScenario.electricityDemand24h.map(d => (d.demand ?? 0) / 1000),
         borderColor: 'rgba(158, 158, 158, 0.9)',
         backgroundColor: 'transparent',
         tension: 0.4,
@@ -87,7 +87,7 @@ const chartData = computed(() => {
     if (maxScenario?.electricityDemand24h && maxScenario.id !== props.currentScenario?.id) {
       datasets.push({
         label: 'Max scenario',
-        data: maxScenario.electricityDemand24h.map(d => d.demand),
+        data: maxScenario.electricityDemand24h.map(d => (d.demand ?? 0) / 1000),
         borderColor: 'rgba(97, 97, 97, 0.9)',
         backgroundColor: 'transparent',
         tension: 0.4,
@@ -99,7 +99,7 @@ const chartData = computed(() => {
 
   datasets.push({
     label: 'This scenario',
-    data: props.demandData.map(d => d.demand),
+    data: props.demandData.map(d => (d.demand ?? 0) / 1000),
     borderColor: 'rgba(25, 118, 210, 1)',
     backgroundColor: 'rgba(25, 118, 210, 0.1)',
     tension: 0.4,
@@ -127,7 +127,7 @@ const chartOptions = computed(() => ({
     tooltip: {
       callbacks: {
         label: function(context) {
-          return context.parsed.y.toLocaleString() + ' kW'
+          return context.parsed.y.toLocaleString() + ' MW'
         }
       }
     }
@@ -137,7 +137,7 @@ const chartOptions = computed(() => ({
       beginAtZero: true,
       ticks: {
         callback: function(value) {
-          return value.toLocaleString() + ' kW'
+          return value.toLocaleString() + ' MW'
         }
       }
     }

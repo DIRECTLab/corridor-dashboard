@@ -28,14 +28,16 @@ const props = defineProps({
 })
 
 const chartData = computed(() => {
-  const dynamicKw = (props.scenario.totalChargeCapacityKw * props.scenario.dynamicChargingPercent) / 100
-  const staticKw = (props.scenario.totalChargeCapacityKw * props.scenario.staticChargingPercent) / 100
+  const dynamicMw =
+    (props.scenario.totalChargeCapacityKw * props.scenario.dynamicChargingPercent) / 100 / 1000
+  const staticMw =
+    (props.scenario.totalChargeCapacityKw * props.scenario.staticChargingPercent) / 100 / 1000
 
   return {
     labels: ['Dynamic Charging', 'Static Charging'],
     datasets: [
       {
-        data: [dynamicKw, staticKw],
+        data: [dynamicMw, staticMw],
         backgroundColor: [
           'rgba(25, 118, 210, 0.8)',
           'rgba(76, 175, 80, 0.8)'
@@ -64,7 +66,7 @@ const chartOptions = {
           const value = context.parsed || 0
           const total = context.dataset.data.reduce((a, b) => a + b, 0)
           const percentage = ((value / total) * 100).toFixed(1)
-          return `${label}: ${value.toLocaleString()} kW (${percentage}%)`
+          return `${label}: ${value.toLocaleString()} MW (${percentage}%)`
         }
       }
     }

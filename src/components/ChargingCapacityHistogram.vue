@@ -53,8 +53,8 @@ const chartData = computed(() => {
     labels: scenariosWithCurrent.map((s, i) => `S${i + 1}`),
     datasets: [
       {
-        label: 'Charging Capacity (kW)',
-        data: scenariosWithCurrent.map(s => s.totalChargeCapacityKw ?? 0),
+        label: 'Charging Capacity (MW)',
+        data: scenariosWithCurrent.map(s => (s.totalChargeCapacityKw ?? 0) / 1000),
         backgroundColor: scenariosWithCurrent.map(s =>
           s.isCurrent ? 'rgba(25, 118, 210, 0.8)' : 'rgba(158, 158, 158, 0.8)'
         ),
@@ -114,7 +114,7 @@ const chartOptions = computed(() => ({
     tooltip: {
       callbacks: {
         label: function(context) {
-          return context.parsed.y.toLocaleString() + ' kW'
+          return context.parsed.y.toLocaleString() + ' MW'
         }
       }
     }
@@ -129,7 +129,7 @@ const chartOptions = computed(() => ({
       beginAtZero: true,
       ticks: {
         callback: function(value) {
-          return value.toLocaleString() + ' kW'
+          return value.toLocaleString() + ' MW'
         }
       }
     }

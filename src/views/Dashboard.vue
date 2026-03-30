@@ -20,7 +20,9 @@
         <v-col cols="12" md="3">
           <v-select
             v-model="selectedStationaryCost"
-            :items="stationaryCostOptions"
+            :items="stationaryCostSelectItems"
+            item-title="title"
+            item-value="value"
             label="Fixed Charging Station Cost"
             variant="outlined"
             density="compact"
@@ -30,7 +32,9 @@
         <v-col cols="12" md="3">
           <v-select
             v-model="selectedDynamicCost"
-            :items="dynamicCostOptions"
+            :items="dynamicCostSelectItems"
+            item-title="title"
+            item-value="value"
             label="Road-Embedded (Wireless) Charging Cost"
             variant="outlined"
             density="compact"
@@ -40,8 +44,10 @@
         <v-col cols="12" md="3">
           <v-select
             v-model="selectedBatteryCost"
-            :items="batteryCostOptions"
-            label="EV Battery Cost ($/kWh)"
+            :items="batteryCostSelectItems"
+            item-title="title"
+            item-value="value"
+            label="EV Battery Cost"
             variant="outlined"
             density="compact"
             hide-details
@@ -50,8 +56,10 @@
         <v-col cols="12" md="3">
           <v-select
             v-model="selectedEvAdoption"
-            :items="evAdoptionOptions"
-            label="Fleet Electrification Rate (%)"
+            :items="evAdoptionSelectItems"
+            item-title="title"
+            item-value="value"
+            label="Fleet Electrification Rate"
             variant="outlined"
             density="compact"
             hide-details
@@ -71,7 +79,7 @@
               <v-row dense>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Fixed charging capital
+                    Fixed charging — Capex
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -83,7 +91,7 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Fixed charging operating
+                    Fixed charging — Opex
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -95,7 +103,7 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Road-embedded capital
+                    Road-embedded — Capex
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -107,7 +115,7 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Road-embedded operating
+                    Road-embedded — Opex
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -152,14 +160,14 @@
         <v-col cols="12" md="6" class="d-flex">
           <v-card class="flex-grow-1">
             <v-card-title class="d-flex align-center">
-              Estimated Grid Upgrade Costs
+              Estimated Grid Upgrades Required
               <v-tooltip location="bottom" max-width="320">
                 <template #activator="{ props }">
                   <v-icon v-bind="props" size="18" color="grey" class="ml-2">mdi-information-outline</v-icon>
                 </template>
-                The additional electrical infrastructure investment needed regionwide to support this
-                level of EV adoption — covering transformers, substations, and distribution lines.
-                Your city typically shares these costs with the utility.
+                The additional electrical infrastructure needed regionwide to support this level of EV
+                adoption — transformers, substations, and distribution lines. Your city typically
+                cost-shares major grid work with the utility.
               </v-tooltip>
             </v-card-title>
             <v-card-subtitle>Total upgrades required to the Wasatch Front grid</v-card-subtitle>
@@ -175,15 +183,7 @@
                     </v-tooltip>
                   </div>
                   <div class="text-h5 text-primary font-weight-bold mb-1">
-                    {{ currentScenario.gridInfrastructureUpgrades.kw.toLocaleString() }} kW of additional capacity
-                  </div>
-                  <div class="d-flex align-center text-body-2 text-medium-emphasis">
-                    ${{ formatCurrency(currentScenario.gridInfrastructureUpgrades.dollars) }}
-                    <v-tooltip :text="costDisclaimer" location="top" max-width="280">
-                      <template #activator="{ props }">
-                        <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
-                      </template>
-                    </v-tooltip>
+                    {{ formatPowerMw(currentScenario.gridInfrastructureUpgrades.kw) }} of additional capacity
                   </div>
                   <div class="text-caption text-warning">~ Model estimate</div>
                 </v-col>
@@ -257,11 +257,11 @@
                   <v-icon v-bind="props" size="18" color="grey" class="ml-2">mdi-information-outline</v-icon>
                 </template>
                 The peak simultaneous charging power available across all locations in this scenario,
-                measured in kilowatts (kW). For reference: a home Level 2 charger delivers ~7–11 kW;
-                a public DC fast charger delivers 50–350 kW.
+                measured in megawatts (MW). For reference: a home Level 2 charger delivers ~0.007–0.011 MW;
+                a public DC fast charger delivers ~0.05–0.35 MW.
               </v-tooltip>
             </v-card-title>
-            <v-card-subtitle>Peak kilowatts available across the region</v-card-subtitle>
+            <v-card-subtitle>Peak megawatts available across the region</v-card-subtitle>
             <v-card-text>
               <v-row>
                 <v-col cols="12" md="4">
@@ -274,7 +274,7 @@
                     </v-tooltip>
                   </div>
                   <div class="text-h5 text-primary font-weight-bold">
-                    {{ currentScenario.totalChargeCapacityKw.toLocaleString() }} kW
+                    {{ formatPowerMw(currentScenario.totalChargeCapacityKw) }}
                   </div>
                   <div class="text-caption text-warning mt-1">~ Model estimate</div>
                 </v-col>
@@ -350,11 +350,11 @@
                 <template #activator="{ props }">
                   <v-icon v-bind="props" size="18" color="grey" class="ml-2">mdi-information-outline</v-icon>
                 </template>
-                Click any county to see 20-year infrastructure costs and energy delivery summary for
-                that county under the current scenario.
+                Click any county for an energy delivery summary for that county under the current
+                scenario.
               </v-tooltip>
             </v-card-title>
-            <v-card-subtitle>Click any county for cost and energy summary</v-card-subtitle>
+            <v-card-subtitle>Click any county for an energy summary</v-card-subtitle>
             <v-card-text>
               <WasatchMap
                 :scenario="currentScenario"
@@ -421,30 +421,19 @@
                 </div>
               </div>
             </v-col>
-            <v-col cols="12" sm="6">
-              <div class="text-caption text-medium-emphasis mb-1">
-                Est. 20-Year Infrastructure Cost
-              </div>
-              <div class="d-flex align-center">
-                <span class="text-body-2 font-weight-bold">${{ formatCurrency(Math.round(selectedMunicipality.data.totalNpcUsd)) }}</span>
-                <v-tooltip :text="costDisclaimer" location="top" max-width="280">
-                  <template #activator="{ props }">
-                    <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
-                  </template>
-                </v-tooltip>
-              </div>
-            </v-col>
-            <v-col cols="12" sm="6">
-              <div class="text-caption text-medium-emphasis mb-1">
-                Avg. Cost per kWh Delivered
-              </div>
-              <div class="d-flex align-center">
-                <span class="text-body-2 font-weight-bold">${{ selectedMunicipality.data.avgBreakevenPerKwh.toFixed(3) }}/kWh</span>
-                <v-tooltip :text="costDisclaimer" location="top" max-width="280">
-                  <template #activator="{ props }">
-                    <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
-                  </template>
-                </v-tooltip>
+            <v-col cols="12" class="text-center">
+              <div class="d-flex flex-column align-center">
+                <div class="text-caption text-medium-emphasis mb-1 text-center">
+                  Avg. Cost per kWh Delivered
+                </div>
+                <div class="d-flex align-center justify-center">
+                  <span class="text-body-2 font-weight-bold">${{ selectedMunicipality.data.avgBreakevenPerKwh.toFixed(3) }}/kWh</span>
+                  <v-tooltip :text="costDisclaimer" location="top" max-width="280">
+                    <template #activator="{ props }">
+                      <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
+                    </template>
+                  </v-tooltip>
+                </div>
               </div>
             </v-col>
           </v-row>
@@ -469,7 +458,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import Navbar from '../components/Navbar.vue'
 import CostPerMileHistogram from '../components/CostPerMileHistogram.vue'
 import GridUpgradeHistogram from '../components/GridUpgradeHistogram.vue'
@@ -480,16 +469,16 @@ import WasatchMap from '../components/WasatchMap.vue'
 import { scenarioData, findScenario, locationDataByScenario } from '../data/dataset.js'
 
 // Options for the 4 scenario selector dropdowns, derived from CSV-backed dataset
-const stationaryCostOptions = scenarioData.stationaryChargingCostOptions
-const dynamicCostOptions = scenarioData.dynamicChargingCostOptions
-const batteryCostOptions = scenarioData.batteryCostOptions
-const evAdoptionOptions = scenarioData.evAdoptionPercentOptions
+const stationaryCostSelectItems = scenarioData.stationaryChargingCostSelectItems
+const dynamicCostSelectItems = scenarioData.dynamicChargingCostSelectItems
+const batteryCostSelectItems = scenarioData.batteryCostSelectItems
+const evAdoptionSelectItems = scenarioData.evAdoptionPercentSelectItems
 
 // Initialize selects with the first available option from each list
-const selectedStationaryCost = ref(stationaryCostOptions[0] || '')
-const selectedDynamicCost = ref(dynamicCostOptions[0] || '')
-const selectedBatteryCost = ref(batteryCostOptions[0] || 0)
-const selectedEvAdoption = ref(evAdoptionOptions[0] || 0)
+const selectedStationaryCost = ref(stationaryCostSelectItems[0]?.value ?? '')
+const selectedDynamicCost = ref(dynamicCostSelectItems[0]?.value ?? '')
+const selectedBatteryCost = ref(batteryCostSelectItems[0]?.value ?? 0)
+const selectedEvAdoption = ref(evAdoptionSelectItems[0]?.value ?? 0)
 
 const currentScenario = computed(() => {
   return findScenario(
@@ -514,6 +503,11 @@ const costDisclaimer = 'Costs shown here should be used as rough estimates for c
 
 function formatCurrency(value) {
   return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
+
+function formatPowerMw(kw) {
+  const mw = Number(kw) / 1000
+  return `${mw.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 0 })} MW`
 }
 
 function showMunicipalityDialog(municipality) {

@@ -108,20 +108,18 @@
               <v-card-text style="overflow: visible;">
 
                 <div class="metric-item mb-5">
-                  <div class="text-h6 mb-1"><strong>Estimated Grid Upgrade Costs</strong></div>
+                  <div class="text-h6 mb-1"><strong>Estimated Grid Upgrades Required</strong></div>
                   <p class="text-body-2">
                     When more EVs plug in, your local electrical grid may need upgrades —
                     transformers, substations, and distribution lines all have capacity limits. This
-                    card shows how much new infrastructure investment would be required regionwide,
-                    expressed both as a total dollar amount and as additional kilowatts (kW) of
-                    capacity added.
+                    card shows how much additional capacity (in megawatts) would be required
+                    regionwide. The histogram compares capacity across all scenarios.
                   </p>
                   <p class="text-body-2 mt-2">
-                    <strong>For your city:</strong> Your municipality typically cost-shares these
-                    upgrades with Rocky Mountain Power. A higher dollar amount doesn't necessarily
-                    mean the scenario is bad — it may also mean more charging capacity is being
-                    built — but it directly informs budget conversations with your utility and
-                    long-range capital improvement plans.
+                    <strong>For your city:</strong> Your municipality typically cost-shares major
+                    grid work with Rocky Mountain Power. Higher required capacity often reflects
+                    more charging load — use it alongside utility planning and long-range capital
+                    improvement discussions.
                   </p>
                 </div>
 
@@ -155,16 +153,16 @@
                   <div class="text-h6 mb-1"><strong>Total Charging Capacity</strong></div>
                   <p class="text-body-2">
                     The peak simultaneous charging power available across all locations in this
-                    scenario, measured in kilowatts (kW). For reference: a home Level 2 charger
-                    delivers about 7–11 kW; a public DC fast charger delivers 50–350 kW; and a
-                    commercial fleet depot charger can deliver 500 kW or more. This number is the
+                    scenario, measured in megawatts (MW). For reference: a home Level 2 charger
+                    delivers about 0.007–0.011 MW; a public DC fast charger delivers 0.05–0.35 MW; and a
+                    commercial fleet depot charger can deliver 0.5 MW or more. This number is the
                     sum of all charging locations across the Wasatch Front combined.
                   </p>
                   <p class="text-body-2 mt-2">
                     <strong>For your city:</strong> Higher capacity means more vehicles can charge
                     simultaneously without queuing, reducing range anxiety and supporting faster
                     fleet electrification. Cross-reference this with the grid upgrade cost to
-                    understand the price per kW of capacity added.
+                    understand the price per MW of capacity added.
                   </p>
                 </div>
 
@@ -199,7 +197,7 @@
                   <div class="text-h6 mb-1"><strong>Projected 24-Hour EV Grid Load</strong></div>
                   <p class="text-body-2">
                     This line chart shows the modeled electricity demand from EVs across a typical
-                    24-hour period for the selected scenario. Peaks represent times when the
+                    24-hour period for the selected scenario (megawatts). Peaks represent times when the
                     regional grid must supply the most power for charging, while valleys show
                     periods of low demand when surplus renewable energy could be used cheaply.
                   </p>
@@ -220,8 +218,6 @@
                   <v-card variant="tonal" class="mt-2">
                     <v-card-text>
                       <ul class="text-body-2 ma-0 pl-4">
-                        <li><strong>Estimated 20-Year Infrastructure Cost:</strong> Total net-present-
-                          value cost for all charging locations in the county.</li>
                         <li><strong>Total Energy Delivered:</strong> Lifetime electricity delivered
                           through those locations.</li>
                         <li><strong>Cost per kWh Delivered:</strong> How efficiently the county's
@@ -256,7 +252,11 @@
                   <tbody>
                     <tr>
                       <td><strong>kW (kilowatt)</strong></td>
-                      <td>A measure of power — how fast electricity flows. 1 kW can power roughly 10 light bulbs at once.</td>
+                      <td>A measure of power — how fast electricity flows. 1 kW can power roughly 10 light bulbs at once. Charger specs often use kW; 1,000 kW equals 1 MW.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>MW (megawatt)</strong></td>
+                      <td>1,000 kW. This dashboard shows regional charging capacity, grid upgrades, and load profiles in MW.</td>
                     </tr>
                     <tr>
                       <td><strong>kWh (kilowatt-hour)</strong></td>

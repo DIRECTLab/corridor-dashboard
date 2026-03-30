@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import * as d3 from 'd3'
 import * as topojson from 'topojson-client'
 
@@ -33,9 +33,8 @@ const WASATCH_COUNTIES = {
   '49049': 'Utah',
 }
 
-// Light blue (low) to dark blue (high) for heatmap
-const COLOR_LOW = '#bbdefb'
-const COLOR_HIGH = '#0d47a1'
+// Uniform light blue fill for all counties
+const COUNTY_FILL = '#90caf9'
 
 let cachedFeatures = null   // reuse across redraws
 
@@ -82,28 +81,13 @@ async function renderMap() {
   const projection = d3.geoMercator().fitExtent([[0, 0], [iw, ih]], featureCollection)
   const path = d3.geoPath().projection(projection)
 
-  // Build color scale from totalKwh (heatmap: light = low, dark = high)
-  const countyData = props.countyData || {}
-  const kwhValues = features
-    .map(f => countyData[f.properties.name]?.totalKwh)
-    .filter(v => v != null && v > 0)
-  const kwhMin = kwhValues.length ? Math.min(...kwhValues) : 0
-  const kwhMax = kwhValues.length ? Math.max(...kwhValues) : 1
-  const colorScale = d3.scaleSequential()
-    .domain([kwhMin, kwhMax])
-    .interpolator(d3.interpolateRgb(COLOR_LOW, COLOR_HIGH))
-
   // County polygons
   g.selectAll('path.county')
     .data(features)
     .join('path')
     .attr('class', 'county')
     .attr('d', path)
-    .attr('fill', d => {
-      const kwh = countyData[d.properties.name]?.totalKwh
-      if (kwh == null || kwh <= 0) return '#bdbdbd'
-      return colorScale(kwh)
-    })
+    .attr('fill', COUNTY_FILL)
     .attr('stroke', '#ffffff')
     .attr('stroke-width', 1.5)
     .attr('opacity', 0.85)
@@ -147,8 +131,6 @@ async function renderMap() {
     .style('fill', '#1a237e')
     .text('Wasatch Front Counties')
 }
-
-watch(() => props.countyData, () => renderMap(), { deep: true })
 
 onMounted(async () => {
   await renderMap()
