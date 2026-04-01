@@ -1,0 +1,47 @@
+# templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "freight-electrification-explorer.fullname" . }}
+  labels:
+    app: {{ include "freight-electrification-explorer.name" . }}
+spec:
+  replicas: {{ .Values.freightEv.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "freight-electrification-explorer.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "freight-electrification-explorer.name" . }}
+    spec:
+      affinity: 
+        nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: role
+                      operator: In
+                      values:
+                        - email-relay
+    {{- with .Values.freightEv.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      containers:
+        - name: app
+          image: "{{ .Values.freightEv.repository }}:{{ .Values.freightEv.tag }}"
+          imagePullPolicy: {{ .Values.freightEv.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.freightEv.port }}
+          env:
+          {{- with .Values.freightEv.env }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+            {{- range .Values.freightEv.secretEnv }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .secretKey }}
+            {{- end }}

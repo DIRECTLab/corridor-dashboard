@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "freight-electrification-explorer.fullname" . }}
+  labels:
+    app: {{ include "freight-electrification-explorer.name" . }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ include "freight-electrification-explorer.name" . }}
+  ports:
+    - name: http
+      port: {{ .Values.freightEv.port }}
+      targetPort: {{ .Values.freightEv.port }}

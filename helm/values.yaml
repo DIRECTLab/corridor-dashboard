@@ -1,0 +1,16 @@
+freightEv:
+  namespace: default
+  replicaCount: 1
+  repository: harbor.aspire-computing.com/library/freight-electrification-explorer
+  tag: latest
+  pullPolicy: IfNotPresent
+  imagePullSecrets:
+    - name: jenkins-harbor-access
+  port: 8000
+  env: {}
+  secretEnv: {}
+ingress:
+  host: freight-ev.aspire-computing.com
+  className: nginx
+  tls:
+    secretName: freight-ev-tls-secret
