@@ -409,7 +409,15 @@
                 <v-row dense>
                   <v-col cols="12" md="6">
                     <v-card variant="tonal" class="pa-3 county-metric-card">
-                      <div class="text-caption text-medium-emphasis">Total Energy Delivered (lifetime)</div>
+                      <div class="d-flex align-center text-caption text-medium-emphasis">
+                        Total Energy Delivered (lifetime)
+                        <v-tooltip location="top" max-width="340" content-class="no-scroll-tooltip">
+                          <template #activator="{ props }">
+                            <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
+                          </template>
+                          {{ tooltipNetPresentEnergy }}
+                        </v-tooltip>
+                      </div>
                       <div class="text-h6 font-weight-bold mt-1">
                         {{ Math.round(selectedCountyData.totalKwh / 1000).toLocaleString() }} MWh
                       </div>
@@ -417,7 +425,15 @@
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-card variant="tonal" class="pa-3 county-metric-card">
-                      <div class="text-caption text-medium-emphasis">Avg. Cost per kWh Delivered</div>
+                      <div class="d-flex align-center text-caption text-medium-emphasis">
+                        Avg. Cost per kWh Delivered
+                        <v-tooltip location="top" max-width="340" content-class="no-scroll-tooltip">
+                          <template #activator="{ props }">
+                            <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
+                          </template>
+                          {{ tooltipBreakevenPerKwh }}
+                        </v-tooltip>
+                      </div>
                       <div class="text-h6 font-weight-bold mt-1">
                         ${{ selectedCountyData.avgBreakevenPerKwh.toFixed(3) }}/kWh
                       </div>
@@ -425,15 +441,41 @@
                   </v-col>
                 </v-row>
 
-                <div class="text-subtitle-2 font-weight-medium mt-4 mb-2">
+                <div class="d-flex align-center text-subtitle-2 font-weight-medium mt-4 mb-2">
                   Top locations by net present cost
+                  <v-tooltip location="top" max-width="340" content-class="no-scroll-tooltip">
+                    <template #activator="{ props }">
+                      <v-icon v-bind="props" size="16" color="grey" class="ml-1">mdi-information-outline</v-icon>
+                    </template>
+                    {{ tooltipNetPresentCostHeading }}
+                  </v-tooltip>
                 </div>
                 <v-table density="compact">
                   <thead>
                     <tr>
                       <th class="text-left">Location</th>
-                      <th class="text-right">Lifetime Energy (MWh)</th>
-                      <th class="text-right">Breakeven ($/kWh)</th>
+                      <th class="text-right">
+                        <span class="d-inline-flex align-center justify-end ga-1">
+                          Lifetime Energy (MWh)
+                          <v-tooltip location="top" max-width="340" content-class="no-scroll-tooltip">
+                            <template #activator="{ props }">
+                              <v-icon v-bind="props" size="14" color="grey">mdi-information-outline</v-icon>
+                            </template>
+                            {{ tooltipNetPresentEnergy }}
+                          </v-tooltip>
+                        </span>
+                      </th>
+                      <th class="text-right">
+                        <span class="d-inline-flex align-center justify-end ga-1">
+                          Breakeven ($/kWh)
+                          <v-tooltip location="top" max-width="340" content-class="no-scroll-tooltip">
+                            <template #activator="{ props }">
+                              <v-icon v-bind="props" size="14" color="grey">mdi-information-outline</v-icon>
+                            </template>
+                            {{ tooltipBreakevenPerKwh }}
+                          </v-tooltip>
+                        </span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -538,6 +580,29 @@ const selectedCountyTopLocations = computed(() => {
 })
 
 const costDisclaimer = 'Costs shown here should be used as rough estimates for comparing scenarios, not as actual budget figures for a project.'
+
+/** Net present kWh from model: discounted lifetime energy delivered at the site. */
+const tooltipNetPresentEnergy = `Total electricity delivered to vehicles at this location (or county total) across the site’s modeled 30-year lifetime, expressed as net present kilowatt-hours.
+
+Future years are discounted the same way as in net present cost (NPC), so this number is comparable to NPC when forming breakeven $/kWh—it is not the same as adding up raw annual kWh with no discounting.
+
+Displayed in MWh (1,000 kWh = 1 MWh).`
+
+/** Shared breakdown of what net present cost (NPC) sums. */
+const tooltipNpcIncludes = `Upfront capex (equipment, installation, grid connection/upgrades)
+Future replacements (discounted back to today)
+Ongoing opex (electricity, maintenance, operations), also discounted`
+
+const tooltipBreakevenPerKwh = `The price per kWh that charging would need to recover the site’s total net present cost (NPC) by end of life. NPC includes:
+${tooltipNpcIncludes}
+
+Below this price, the site does not fully recoup NPC; at or above it, the model treats the site as breaking even on that basis.`
+
+const tooltipNetPresentCostHeading = `Net present cost (NPC) includes:
+${tooltipNpcIncludes}
+
+This table lists locations with the largest total NPC.`
+
 const keyTakeawayText = computed(() => {
   const chargeCapacity = formatPowerMw(currentScenario.value.totalChargeCapacityKw)
   const gridMw = formatPowerMw(currentScenario.value.gridInfrastructureUpgrades.kw)
@@ -622,6 +687,7 @@ watch(
 .no-scroll-tooltip {
   overflow: visible !important;
   max-height: none !important;
+  white-space: pre-line;
 }
 
 .quick-start-dialog-content {
