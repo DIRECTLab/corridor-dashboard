@@ -40,7 +40,7 @@ pipeline {
                 withKubeConfig([credentialsId: 'kubernetes-cluster-access-file', serverUrl: 'https://k8s.aspire-computing.com:6443']) {
                     sh """
                         helm upgrade --install ${HELM_RELEASE} ${HELM_CHART_PATH} \
-                        --set utah_transportation_electrification.tag=${IMAGE_TAG} \
+                        --set freightEv.tag=${IMAGE_TAG} \
                         --namespace=${NAMESPACE}
                         """
                 }
