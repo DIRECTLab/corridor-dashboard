@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="6" fill="#1565C0"/>
+  <!-- Class-8-style side silhouette: van body, day cab, three axles -->
+  <g fill="#fff">
+    <path d="M2 10.5h14.5v8.5H2v-8.5zm14.5 0h7l4.5 3.8V19h-11.5v-8.5z"/>
+    <rect x="2" y="17.5" width="25.5" height="2" rx="0.5"/>
+    <circle cx="7.5" cy="21.5" r="3.25"/>
+    <circle cx="14.5" cy="21.5" r="3.25"/>
+    <circle cx="25.25" cy="21.5" r="3.25"/>
+  </g>
+</svg>
