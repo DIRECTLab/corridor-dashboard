@@ -152,10 +152,12 @@
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
                       </template>
-                      Share of vehicles on the road that are electric
+                      Share of total truck VMT represented by the model electrification level.
+                      40% of the data sample corresponds to about 5.5% of total truck VMT electrified.
+                      100% of the data sample corresponds to about 21.8% of total truck VMT electrified.
                     </v-tooltip>
                   </div>
-                  <div class="text-body-2 font-weight-medium">{{ currentScenario.evAdoptionPercent }}%</div>
+                  <div class="text-body-2 font-weight-medium">{{ formatElectrificationExplainer(currentScenario.evAdoptionPercent) }}</div>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -624,6 +626,13 @@ function formatPowerSi(watts) {
 function formatCentsPerMile(dollarsPerMile) {
   const cents = Number(dollarsPerMile || 0) * 100
   return `${cents.toLocaleString('en-US', { maximumFractionDigits: 2 })} ¢/mi`
+}
+
+function formatElectrificationExplainer(samplePercent) {
+  const p = Number(samplePercent || 0)
+  if (p === 40) return '5.5% of total truck VMT'
+  if (p === 100) return '21.8% of total truck VMT'
+  return `${p.toLocaleString('en-US', { maximumFractionDigits: 2 })}% of sample`
 }
 
 function selectScenario(scenario) {

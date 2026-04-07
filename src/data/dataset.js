@@ -191,12 +191,17 @@ function buildBatteryCostSelectItems(scenarios) {
 
 function buildEvAdoptionSelectItems(scenarios) {
   const vals = [...new Set(scenarios.map(s => s.evAdoptionPercent))].sort((a, b) => a - b)
-  if (vals.length === 0) return []
-  if (vals.length === 1) return [{ title: 'Full Electrification', value: vals[0] }]
-
-  // Sorted ascending: lower adoption → high (not full); highest → full electrification.
+  if (vals.length <= 0) return []
+  if (vals.length === 1) return [{ title: 'Near-term', value: vals[0] }]
+  if (vals.length === 2) {
+    return [
+      { title: 'Near-term', value: vals[0] },
+      { title: 'Future', value: vals[1] }
+    ]
+  }
+  // If additional tiers exist, keep middle tiers explicit.
   return vals.map((v, i) => ({
-    title: i === vals.length - 1 ? 'Full Electrification' : 'High Electrification',
+    title: i === 0 ? 'Near-term' : i === vals.length - 1 ? 'Future' : 'Mid-term',
     value: v
   }))
 }
@@ -206,9 +211,10 @@ function attachBatteryAndEvTierLabels(scenarios) {
   const batLabels = tierLabelsForExpenseOrder(batVals.length)
   const batMap = Object.fromEntries(batVals.map((v, i) => [v, batLabels[i]]))
   const evVals = [...new Set(scenarios.map(s => s.evAdoptionPercent))].sort((a, b) => a - b)
-  const evMap = Object.fromEntries(
-    evVals.map((v, i) => [v, i === evVals.length - 1 ? 'Full Electrification' : 'High Electrification'])
-  )
+  const evMap = Object.fromEntries(evVals.map((v, i) => [
+    v,
+    i === 0 ? 'Near-term' : i === evVals.length - 1 ? 'Future' : 'Mid-term'
+  ]))
   for (const s of scenarios) {
     s.batteryCostTierLabel = batMap[s.batteryCost] ?? 'Mid-term'
     s.evAdoptionTierLabel = evMap[s.evAdoptionPercent] ?? 'Mid-term'
