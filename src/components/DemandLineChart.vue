@@ -47,16 +47,17 @@ const props = defineProps({
   }
 })
 
-const minMaxScenarios = computed(() => {
-  if (!props.allScenarios?.length) return { min: null, max: null }
-  const withTotal = props.allScenarios.map(s => ({
-    scenario: s,
-    total: (s.electricityDemand24h || []).reduce((sum, d) => sum + (d.demand ?? 0), 0)
-  }))
-  const sorted = [...withTotal].sort((a, b) => a.total - b.total)
+const minMaxEnvelopeByHour = computed(() => {
+  if (!props.allScenarios?.length) return { min: [], max: [] }
+  const hourly = Array.from({ length: 24 }, () => [])
+  for (const s of props.allScenarios) {
+    for (const pt of (s.electricityDemand24h || [])) {
+      if (pt?.hour >= 0 && pt?.hour < 24) hourly[pt.hour].push(Number(pt.demand || 0) / 1000)
+    }
+  }
   return {
-    min: sorted[0]?.scenario ?? null,
-    max: sorted[sorted.length - 1]?.scenario ?? null
+    min: hourly.map(arr => arr.length ? Math.min(...arr) : 0),
+    max: hourly.map(arr => arr.length ? Math.max(...arr) : 0),
   }
 })
 
@@ -64,38 +65,30 @@ const chartData = computed(() => {
   const labels = props.demandData.map(d => {
     const hour = d.hour % 12 || 12
     const period = d.hour < 12 ? 'AM' : 'PM'
-    return `${hour}:00 ${period}`
+    return `${hour} ${period}`
   })
 
   const datasets = []
 
-  // Find min and max scenarios by total 24h demand
-  const { min: minScenario, max: maxScenario } = minMaxScenarios.value
-  if (minScenario || maxScenario) {
-
-    if (minScenario?.electricityDemand24h && minScenario.id !== props.currentScenario?.id) {
-      datasets.push({
-        label: 'Min scenario',
-        data: minScenario.electricityDemand24h.map(d => (d.demand ?? 0) / 1000),
-        borderColor: 'rgba(158, 158, 158, 0.9)',
-        backgroundColor: 'transparent',
-        tension: 0.4,
-        fill: false,
-        borderDash: [4, 4]
-      })
-    }
-    if (maxScenario?.electricityDemand24h && maxScenario.id !== props.currentScenario?.id) {
-      datasets.push({
-        label: 'Max scenario',
-        data: maxScenario.electricityDemand24h.map(d => (d.demand ?? 0) / 1000),
-        borderColor: 'rgba(97, 97, 97, 0.9)',
-        backgroundColor: 'transparent',
-        tension: 0.4,
-        fill: false,
-        borderDash: [4, 4]
-      })
-    }
-  }
+  const envelope = minMaxEnvelopeByHour.value
+  datasets.push({
+    label: 'Hourly min (all scenarios)',
+    data: envelope.min,
+    borderColor: 'rgba(158, 158, 158, 0.9)',
+    backgroundColor: 'transparent',
+    tension: 0.35,
+    fill: false,
+    borderDash: [4, 4]
+  })
+  datasets.push({
+    label: 'Hourly max (all scenarios)',
+    data: envelope.max,
+    borderColor: 'rgba(97, 97, 97, 0.9)',
+    backgroundColor: 'transparent',
+    tension: 0.35,
+    fill: false,
+    borderDash: [4, 4]
+  })
 
   datasets.push({
     label: 'This scenario',
@@ -116,18 +109,12 @@ const chartOptions = computed(() => ({
     legend: {
       display: true,
       position: 'top',
-      onClick: (event, legendItem, legend) => {
-        if (legendItem.text === 'Min scenario' && minMaxScenarios.value.min) {
-          emit('select-scenario', minMaxScenarios.value.min)
-        } else if (legendItem.text === 'Max scenario' && minMaxScenarios.value.max) {
-          emit('select-scenario', minMaxScenarios.value.max)
-        }
-      }
+      onClick: () => {}
     },
     tooltip: {
       callbacks: {
         label: function(context) {
-          return context.parsed.y.toLocaleString() + ' MW'
+          return Number(context.parsed.y).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' MW'
         }
       }
     }
@@ -137,7 +124,7 @@ const chartOptions = computed(() => ({
       beginAtZero: true,
       ticks: {
         callback: function(value) {
-          return value.toLocaleString() + ' MW'
+          return Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' MW'
         }
       }
     }

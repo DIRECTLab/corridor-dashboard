@@ -1,16 +1,11 @@
 <template>
-  <div style="height: 300px; cursor: pointer;">
-    <Bar
-      :data="chartData"
-      :options="chartOptions"
-    />
+  <div style="height: 220px;">
+    <Bar :data="chartData" :options="chartOptions" />
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-
-const emit = defineEmits(['select-scenario'])
 import { Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -31,112 +26,91 @@ ChartJS.register(
   Legend
 )
 
-const props = defineProps({
-  currentScenario: Object,
-  allScenarios: Array
+const props = defineProps({ currentScenario: Object, allScenarios: Array })
+
+const BIN_COUNT = 12
+const histogram = computed(() => {
+  const values = (props.allScenarios || []).map(s => Number(s.gridInfrastructureUpgrades?.kw || 0))
+  if (!values.length) return { labels: [], counts: [], currentBin: -1 }
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = Math.max(1, max - min)
+  const width = span / BIN_COUNT
+  const counts = Array.from({ length: BIN_COUNT }, () => 0)
+  const bins = values.map(v => Math.min(BIN_COUNT - 1, Math.floor((v - min) / width)))
+  bins.forEach(i => { counts[i] += 1 })
+  const currentVal = Number(props.currentScenario?.gridInfrastructureUpgrades?.kw || 0)
+  const currentBin = Math.min(BIN_COUNT - 1, Math.floor((currentVal - min) / width))
+  const labels = Array.from({ length: BIN_COUNT }, (_, i) => {
+    const lo = min + (i * width)
+    const hi = min + ((i + 1) * width)
+    return `${formatSIWatts(lo * 1000)}-${formatSIWatts(hi * 1000)}`
+  })
+  return { labels, counts, currentBin }
 })
-
-const chartData = computed(() => {
-  const currentId = props.currentScenario?.id
-
-  // Sort all scenarios by grid upgrade dollars from smallest to largest
-  const sortedScenarios = [...props.allScenarios].sort(
-    (a, b) => (a.gridInfrastructureUpgrades?.dollars ?? 0) - (b.gridInfrastructureUpgrades?.dollars ?? 0)
-  )
-
-  const scenariosWithCurrent = sortedScenarios.map(s => ({
-    ...s,
-    isCurrent: s.id === currentId
-  }))
-
+const collapsedHistogram = computed(() => {
+  const keep = histogram.value.counts
+    .map((count, i) => ({ count, i }))
+    .filter(({ count }) => count > 0)
+    .map(({ i }) => i)
   return {
-    labels: scenariosWithCurrent.map((s, i) => `S${i + 1}`),
-    datasets: [
-      {
-        label: 'Grid Upgrade Cost ($)',
-        data: scenariosWithCurrent.map(s => s.gridInfrastructureUpgrades?.dollars ?? 0),
-        backgroundColor: scenariosWithCurrent.map(s =>
-          s.isCurrent ? 'rgba(25, 118, 210, 0.8)' : 'rgba(158, 158, 158, 0.8)'
-        ),
-        borderColor: scenariosWithCurrent.map(s =>
-          s.isCurrent ? 'rgba(25, 118, 210, 1)' : 'rgba(158, 158, 158, 1)'
-        ),
-        borderWidth: scenariosWithCurrent.map(s => s.isCurrent ? 3 : 1)
-      }
-    ]
+    labels: keep.map(i => histogram.value.labels[i]),
+    counts: keep.map(i => histogram.value.counts[i]),
+    currentBin: keep.indexOf(histogram.value.currentBin),
   }
 })
 
-function formatCurrency(value) {
-  return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+function formatSIWatts(watts) {
+  const abs = Math.abs(watts)
+  if (abs >= 1e9) return `${trim(watts / 1e9)} GW`
+  if (abs >= 1e6) return `${trim(watts / 1e6)} MW`
+  if (abs >= 1e3) return `${trim(watts / 1e3)} kW`
+  return `${trim(watts)} W`
 }
-
-const sortedScenarios = computed(() =>
-  [...(props.allScenarios || [])].sort(
-    (a, b) => (a.gridInfrastructureUpgrades?.dollars ?? 0) - (b.gridInfrastructureUpgrades?.dollars ?? 0)
-  )
-)
+function trim(v) {
+  return Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 })
+}
 
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
-  onClick: (event, elements, chart) => {
-    if (elements.length > 0) {
-      const dataIndex = elements[0].index
-      const scenario = sortedScenarios.value[dataIndex]
-      if (scenario) emit('select-scenario', scenario)
-    }
-  },
   plugins: {
-    legend: {
-      display: true,
-      position: 'top',
-      labels: {
-        generateLabels: function(chart) {
-          return [
-            {
-              text: 'Current scenario',
-              fillStyle: 'rgba(25, 118, 210, 0.8)',
-              strokeStyle: 'rgba(25, 118, 210, 1)',
-              lineWidth: 1,
-              hidden: false
-            },
-            {
-              text: 'Other scenarios',
-              fillStyle: 'rgba(158, 158, 158, 0.8)',
-              strokeStyle: 'rgba(158, 158, 158, 1)',
-              lineWidth: 1,
-              hidden: false
-            }
-          ]
-        }
-      },
-      onClick: function() {
-        // Prevent toggling; legend is display-only
-      }
-    },
+    legend: { display: false },
     tooltip: {
       callbacks: {
-        label: function(context) {
-          return '$' + formatCurrency(context.parsed.y)
-        }
+        label: (context) => `${context.parsed.y} scenarios`
       }
     }
   },
   scales: {
     x: {
       ticks: {
-        display: false
-      }
+        display: true,
+        autoSkip: true,
+        maxTicksLimit: 6,
+        maxRotation: 0
+      },
+      title: {
+        display: true,
+        text: 'Additional grid capacity range'
+      },
     },
     y: {
       beginAtZero: true,
-      ticks: {
-        callback: function(value) {
-          return '$' + formatCurrency(value)
-        }
-      }
+      ticks: { precision: 0 }
     }
   }
+}))
+
+const chartData = computed(() => ({
+  labels: collapsedHistogram.value.labels,
+  datasets: [{
+    label: 'Scenario count',
+    data: collapsedHistogram.value.counts,
+    backgroundColor: collapsedHistogram.value.counts.map((_, i) =>
+      i === collapsedHistogram.value.currentBin ? 'rgba(25, 118, 210, 0.85)' : 'rgba(158, 158, 158, 0.75)'
+    ),
+    borderWidth: 0
+  }]
 }))
 </script>
