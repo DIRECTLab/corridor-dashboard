@@ -3,27 +3,6 @@
     <Navbar />
     <div style="margin-top: 48px;">
       <v-container fluid class="pa-4">
-      <!-- Context Banner -->
-      <v-row class="mb-3">
-        <v-col cols="12">
-          <v-alert type="info" variant="tonal" density="compact" icon="mdi-information-outline">
-            <strong>Class 8 vehicles only.</strong> This dashboard models infrastructure for heavy-duty
-            trucks (Class 8) across the Wasatch Front. Choose a set of assumptions below to see how
-            different investments would affect costs. You can also click any bar in the histograms to
-            jump to that scenario. All charts and metrics update when you change a parameter.
-          </v-alert>
-        </v-col>
-      </v-row>
-
-      <!-- Key takeaway -->
-      <v-row class="mb-4">
-        <v-col cols="12">
-          <v-alert type="success" variant="tonal" density="compact" icon="mdi-lightbulb-on-outline">
-            <strong>Key takeaway:</strong> {{ keyTakeawayText }}
-          </v-alert>
-        </v-col>
-      </v-row>
-
       <!-- Selected scenario inputs + county coverage map -->
       <v-row class="mb-4">
         <v-col cols="12" md="6" class="d-flex">
@@ -87,7 +66,7 @@
               <v-row dense>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Plug-in charging upfront cost (capex)
+                    Plug-in charging upfront cost (CapEx)
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -99,7 +78,7 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    Plug-in charging annual operations (opex)
+                    Plug-in charging annual operations (OpEx)
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -111,7 +90,7 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    In-road charging upfront cost (capex)
+                    In-road charging upfront cost (CapEx)
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -123,7 +102,7 @@
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
-                    In-road charging annual operations (opex)
+                    In-road charging annual operations (OpEx)
                     <v-tooltip location="top" max-width="280" content-class="no-scroll-tooltip">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -152,10 +131,12 @@
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
                       </template>
-                      Share of vehicles on the road that are electric
+                      Share of total truck VMT represented by the model electrification level.
+                      40% of the data sample corresponds to about 5.5% of total truck VMT electrified.
+                      100% of the data sample corresponds to about 21.8% of total truck VMT electrified.
                     </v-tooltip>
                   </div>
-                  <div class="text-body-2 font-weight-medium">{{ currentScenario.evAdoptionPercent }}%</div>
+                  <div class="text-body-2 font-weight-medium">{{ formatElectrificationExplainer(currentScenario.evAdoptionPercent) }}</div>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -169,18 +150,27 @@
                 <template #activator="{ props }">
                   <v-icon v-bind="props" size="18" color="grey" class="ml-2">mdi-information-outline</v-icon>
                 </template>
-                Blue dots are cities. Dot size reflects total kW: plug-in capacity at that city plus
-                in-road (dynamic) capacity attributed to the nearest city from each road segment.
+                Electrified roads and charging footprints are shown from the scenario geometry.
+                Color indicates total kW needed at each segment/site (darker means higher kW).
               </v-tooltip>
             </v-card-title>
-            <v-card-subtitle>Total kW per city (plug-in + in-road, grouped by city)</v-card-subtitle>
+            <v-card-subtitle>Electrified roads and sites, colored by total kW needed</v-card-subtitle>
             <v-card-text>
               <CityInfrastructureMap
                 :scenario="currentScenario"
-                :height="320"
+                :height="430"
               />
             </v-card-text>
           </v-card>
+        </v-col>
+      </v-row>
+
+      <!-- Key takeaway -->
+      <v-row class="mb-4">
+        <v-col cols="12">
+          <v-alert type="success" variant="tonal" density="compact" icon="mdi-lightbulb-on-outline">
+            <strong>Key takeaway:</strong> {{ keyTakeawayText }}
+          </v-alert>
         </v-col>
       </v-row>
 
@@ -205,14 +195,14 @@
                 <v-col cols="12" md="4">
                   <div class="d-flex align-center mb-1">
                     <div class="text-subtitle-1 mr-1">This scenario</div>
-                    <v-tooltip text="Compared against all other scenarios in the bar chart. Click any bar to select that scenario.">
+                    <v-tooltip text="Compared against all other scenarios in the histogram distribution.">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="18" color="primary" class="ml-1">mdi-information-outline</v-icon>
                       </template>
                     </v-tooltip>
                   </div>
                   <div class="text-h5 text-primary font-weight-bold mb-1">
-                    {{ formatPowerMw(currentScenario.totalChargeCapacityKw) }}
+                    {{ formatPowerSi(currentScenario.totalChargeCapacityKw * 1000) }}
                   </div>
                   <div class="text-caption text-warning mt-1">~ Model estimate</div>
                 </v-col>
@@ -237,23 +227,23 @@
                 </template>
                 The cost of operating a Class 8 vehicle per mile using the proposed infrastructure
                 changes. Lower is better — it means more transportation value per dollar invested.
-                The bar chart compares all 54 scenarios so you can see where this one ranks.
+                The histogram shows where this scenario sits within all modeled outcomes.
               </v-tooltip>
             </v-card-title>
-            <v-card-subtitle>How far each dollar goes vs. all other scenarios</v-card-subtitle>
+            <v-card-subtitle>Cost efficiency in context of all modeled scenarios</v-card-subtitle>
             <v-card-text>
               <v-row>
                 <v-col cols="12" md="4">
                   <div class="d-flex align-center mb-1">
                     <div class="text-subtitle-1 mr-1">This scenario</div>
-                    <v-tooltip text="Compared against all other scenarios in the bar chart. Click any bar to select that scenario.">
+                    <v-tooltip text="Compared against all other scenarios in the histogram distribution.">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="18" color="primary" class="ml-1">mdi-information-outline</v-icon>
                       </template>
                     </v-tooltip>
                   </div>
                   <div class="d-flex align-center">
-                    <span class="text-h6 text-primary font-weight-bold">${{ currentScenario.costPerMile.toFixed(2) }}/mile</span>
+                    <span class="text-h6 text-primary font-weight-bold">{{ formatCentsPerMile(currentScenario.costPerMile) }}</span>
                     <v-tooltip :text="costDisclaimer" location="top" max-width="280">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="14" color="grey" class="ml-1">mdi-information-outline</v-icon>
@@ -296,14 +286,14 @@
                 <v-col cols="12" md="4">
                   <div class="d-flex align-center mb-1">
                     <div class="text-subtitle-1 mr-1">This scenario</div>
-                    <v-tooltip text="Compared against all other scenarios in the bar chart. Click any bar to select that scenario.">
+                    <v-tooltip text="Compared against all other scenarios in the histogram distribution.">
                       <template #activator="{ props }">
                         <v-icon v-bind="props" size="18" color="primary" class="ml-1">mdi-information-outline</v-icon>
                       </template>
                     </v-tooltip>
                   </div>
                   <div class="text-h5 text-primary font-weight-bold">
-                    {{ formatPowerMw(currentScenario.gridInfrastructureUpgrades.kw) }} additional grid capacity
+                    {{ formatPowerSi(currentScenario.gridInfrastructureUpgrades.kw * 1000) }} additional grid capacity
                   </div>
                   <div class="text-caption text-warning">~ Model estimate</div>
                 </v-col>
@@ -370,9 +360,9 @@
       </v-row>
 
       <!-- County breakdown -->
-      <v-row>
+      <v-row justify="center">
         <v-col cols="12">
-          <v-card>
+          <v-card class="county-summary-card">
             <v-card-title class="d-flex align-center">
               County Infrastructure Summary
               <v-tooltip location="bottom" max-width="320">
@@ -435,7 +425,7 @@
                         </v-tooltip>
                       </div>
                       <div class="text-h6 font-weight-bold mt-1">
-                        ${{ selectedCountyData.avgBreakevenPerKwh.toFixed(3) }}/kWh
+                        ${{ Number(selectedCountyData.avgBreakevenPerKwh).toLocaleString('en-US', { maximumFractionDigits: 3 }) }}/kWh
                       </div>
                     </v-card>
                   </v-col>
@@ -482,7 +472,7 @@
                     <tr v-for="loc in selectedCountyTopLocations" :key="loc.name">
                       <td>{{ loc.name }}</td>
                       <td class="text-right">{{ Math.round(loc.kwhVal / 1000).toLocaleString() }}</td>
-                      <td class="text-right">${{ loc.breakevenPerKwh.toFixed(3) }}</td>
+                      <td class="text-right">${{ Number(loc.breakevenPerKwh).toLocaleString('en-US', { maximumFractionDigits: 3 }) }}</td>
                     </tr>
                   </tbody>
                 </v-table>
@@ -501,6 +491,10 @@
           Quick Start
         </v-card-title>
         <v-card-text class="pt-2">
+          <v-alert type="info" variant="tonal" density="compact" icon="mdi-information-outline" class="mb-3">
+            <strong>Class 8 vehicles only.</strong> This dashboard models infrastructure for heavy-duty
+            trucks (Class 8) across the Wasatch Front.
+          </v-alert>
           <div class="text-body-2 mb-3">
             Use these three steps to explore scenarios and county-level results.
           </div>
@@ -520,7 +514,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import Navbar from '../components/Navbar.vue'
 import CostPerMileHistogram from '../components/CostPerMileHistogram.vue'
 import GridUpgradeHistogram from '../components/GridUpgradeHistogram.vue'
@@ -541,7 +535,7 @@ const selectedStationaryCost = ref(stationaryCostSelectItems[0]?.value ?? '')
 const selectedDynamicCost = ref(dynamicCostSelectItems[0]?.value ?? '')
 const selectedBatteryCost = ref(batteryCostSelectItems[0]?.value ?? 0)
 const selectedEvAdoption = ref(evAdoptionSelectItems[0]?.value ?? 0)
-const gettingStartedDialog = ref(true)
+const gettingStartedDialog = ref(false)
 
 const currentScenario = computed(() => {
   return findScenario(
@@ -604,19 +598,33 @@ ${tooltipNpcIncludes}
 This table lists locations with the largest total NPC.`
 
 const keyTakeawayText = computed(() => {
-  const chargeCapacity = formatPowerMw(currentScenario.value.totalChargeCapacityKw)
-  const gridMw = formatPowerMw(currentScenario.value.gridInfrastructureUpgrades.kw)
-  const costPerMile = currentScenario.value.costPerMile.toFixed(2)
-  return `This scenario delivers ${chargeCapacity} of total charging capacity, needs about ${gridMw} of additional grid capacity, and is estimated at $${costPerMile} per mile.`
+  const chargeCapacity = formatPowerSi(currentScenario.value.totalChargeCapacityKw * 1000)
+  const gridCapacity = formatPowerSi(currentScenario.value.gridInfrastructureUpgrades.kw * 1000)
+  return `This scenario delivers ${chargeCapacity} of total charging capacity, needs about ${gridCapacity} of additional grid capacity, and is estimated at ${formatCentsPerMile(currentScenario.value.costPerMile)}.`
 })
 
 function formatCurrency(value) {
   return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
-function formatPowerMw(kw) {
-  const mw = Number(kw) / 1000
-  return `${mw.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 0 })} MW`
+function formatPowerSi(watts) {
+  const abs = Math.abs(Number(watts))
+  if (abs >= 1e9) return `${Number(watts / 1e9).toLocaleString('en-US', { maximumFractionDigits: 2 })} GW`
+  if (abs >= 1e6) return `${Number(watts / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 })} MW`
+  if (abs >= 1e3) return `${Number(watts / 1e3).toLocaleString('en-US', { maximumFractionDigits: 2 })} kW`
+  return `${Number(watts).toLocaleString('en-US', { maximumFractionDigits: 2 })} W`
+}
+
+function formatCentsPerMile(dollarsPerMile) {
+  const cents = Number(dollarsPerMile || 0) * 100
+  return `${cents.toLocaleString('en-US', { maximumFractionDigits: 2 })} ¢/mi`
+}
+
+function formatElectrificationExplainer(samplePercent) {
+  const p = Number(samplePercent || 0)
+  if (p === 40) return '5.5% of total truck VMT'
+  if (p === 100) return '21.8% of total truck VMT'
+  return `${p.toLocaleString('en-US', { maximumFractionDigits: 2 })}% of sample`
 }
 
 function selectScenario(scenario) {
@@ -640,6 +648,14 @@ watch(
   },
   { immediate: true }
 )
+
+onMounted(() => {
+  const seen = window.sessionStorage.getItem('dashboardQuickStartSeen')
+  if (!seen) {
+    gettingStartedDialog.value = true
+    window.sessionStorage.setItem('dashboardQuickStartSeen', 'true')
+  }
+})
 </script>
 
 <style scoped>
@@ -679,6 +695,11 @@ watch(
 
 .county-metric-card {
   min-height: 120px;
+}
+
+.county-summary-card {
+  max-width: 1100px;
+  margin: 0 auto;
 }
 </style>
 

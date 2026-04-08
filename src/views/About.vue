@@ -13,6 +13,10 @@
                   understand the economic and infrastructure implications of electric vehicle (EV) 
                   charging scenarios for the Wasatch Front region of Utah.
                 </p>
+                <v-alert type="info" variant="tonal" density="comfortable" class="mt-3">
+                  <strong>Scope:</strong> This analysis is focused on heavy-duty freight vehicles,
+                  specifically <strong>Class 8 trucks</strong>.
+                </v-alert>
                 
                 <h3 class="text-h6 mt-6 mb-3">Purpose</h3>
                 <p class="text-body-1">

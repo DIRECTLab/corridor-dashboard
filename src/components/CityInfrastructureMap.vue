@@ -9,14 +9,14 @@
     </div>
     <div ref="mapContainerRef" class="city-map" :style="{ height: `${props.height}px` }"></div>
     <div class="map-legend">
-      <div class="legend-title">Total kW (per city)</div>
-      <div class="legend-caption">Plug-in plus in-road capacity (in-road attributed to nearest city).</div>
+      <div class="legend-title">Total kW by feature</div>
+      <div class="legend-caption">Electrified roads and charging footprints. Darker blue means higher kW.</div>
       <div class="legend-row">
-        <span class="legend-dot legend-dot-small"></span>
+        <span class="legend-swatch legend-swatch-light"></span>
         <span>Lower kW</span>
       </div>
       <div class="legend-row">
-        <span class="legend-dot legend-dot-large"></span>
+        <span class="legend-swatch legend-swatch-dark"></span>
         <span>Higher kW</span>
       </div>
     </div>
@@ -42,8 +42,8 @@ const loading = ref(true)
 const error = ref('')
 
 let mapInstance = null
-let markerLayer = null
-let cityDataByScenario = {}
+let featureLayer = null
+let scenarioFeatures = {}
 
 function parseCsvLine(line) {
   const out = []
@@ -70,44 +70,38 @@ function parseCsvLine(line) {
   return out
 }
 
-function citySlugFromLocId(locId) {
-  const parts = String(locId || '').split('_')
-  if (parts.length < 3) return null
-  return parts.slice(2).join('_')
+function parseCoords(raw) {
+  return raw.split(',').map(pair => {
+    const [lon, lat] = pair.trim().split(/\s+/).map(Number)
+    return [lat, lon]
+  }).filter(([lat, lon]) => Number.isFinite(lat) && Number.isFinite(lon))
 }
 
-function parseFirstLonLat(wkt) {
-  const match = String(wkt || '').match(/(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/)
-  if (!match) return null
-  const lon = Number(match[1])
-  const lat = Number(match[2])
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null
-  return { lat, lon }
-}
-
-/** Lon/lat centroid of all coordinates in WKT (LineString, Polygon, etc.). */
-function parseWktCentroid(wkt) {
-  const pairs = []
-  const re = /(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g
-  let m
-  while ((m = re.exec(String(wkt || ''))) !== null) {
-    const lon = Number(m[1])
-    const lat = Number(m[2])
-    if (Number.isFinite(lat) && Number.isFinite(lon)) pairs.push({ lat, lon })
+function wktToLatLngs(type, wkt) {
+  if (!wkt) return null
+  if (type === 'LineString') {
+    const match = wkt.match(/LINESTRING\s*\((.*)\)/i)
+    if (!match) return null
+    return parseCoords(match[1])
   }
-  if (!pairs.length) return null
-  const sumLat = pairs.reduce((a, p) => a + p.lat, 0)
-  const sumLon = pairs.reduce((a, p) => a + p.lon, 0)
-  return { lat: sumLat / pairs.length, lon: sumLon / pairs.length }
+  if (type === 'Polygon') {
+    const match = wkt.match(/POLYGON\s*\(\((.*)\)\)/i)
+    if (!match) return null
+    const ring = match[1].split('),(')[0]
+    return parseCoords(ring)
+  }
+  return null
 }
 
-function distSq(a, b) {
-  const dLat = a.lat - b.lat
-  const dLon = a.lon - b.lon
-  return dLat * dLat + dLon * dLon
+function colorForKw(kw, minKw, maxKw) {
+  const t = (kw - minKw) / Math.max(1, maxKw - minKw)
+  if (t < 0.25) return '#bbdefb'
+  if (t < 0.5) return '#90caf9'
+  if (t < 0.75) return '#42a5f5'
+  return '#1565c0'
 }
 
-async function loadCityData() {
+async function loadScenarioFeatures() {
   const res = await fetch(infrastructureMapCsvUrl)
   if (!res.ok) throw new Error(`Failed to load infrastructure_map.csv (${res.status})`)
   const text = await res.text()
@@ -121,112 +115,37 @@ async function loadCityData() {
     const scId = cols[0]
     const locId = cols[1]
     const capacityKw = Number(cols[3]) || 0
+    const geometryType = cols[12]
     const geometryWkt = cols[13]
-
-    if (!String(locId).startsWith('stn_')) continue
-    const citySlug = citySlugFromLocId(locId)
-    if (!citySlug) continue
-
-    const lonLat = parseFirstLonLat(geometryWkt)
-    if (!lonLat) continue
-
-    if (!byScenario[scId]) byScenario[scId] = {}
-    if (!byScenario[scId][citySlug]) {
-      byScenario[scId][citySlug] = {
-        city: citySlug.replace(/_/g, ' '),
-        totalCapacityKw: 0,
-        latWeightedSum: 0,
-        lonWeightedSum: 0,
-        weightSum: 0,
-      }
-    }
-
-    const cityEntry = byScenario[scId][citySlug]
-    const weight = Math.max(1, capacityKw)
-    cityEntry.totalCapacityKw += capacityKw
-    cityEntry.latWeightedSum += lonLat.lat * weight
-    cityEntry.lonWeightedSum += lonLat.lon * weight
-    cityEntry.weightSum += weight
+    const latLngs = wktToLatLngs(geometryType, geometryWkt)
+    if (!latLngs?.length) continue
+    if (!byScenario[scId]) byScenario[scId] = []
+    byScenario[scId].push({ locId, capacityKw, geometryType, latLngs })
   }
-
-  // Add in-road (dynamic) capacity_kw to nearest plug-in city within each scenario.
-  for (const line of lines.slice(1)) {
-    if (!line.trim()) continue
-    const cols = parseCsvLine(line)
-    const scId = cols[0]
-    const locId = cols[1]
-    const capacityKw = Number(cols[3]) || 0
-    const geometryWkt = cols[13]
-
-    if (!String(locId).startsWith('dwpt_')) continue
-    const scenarioCities = byScenario[scId]
-    if (!scenarioCities || !Object.keys(scenarioCities).length) continue
-
-    const centroid = parseWktCentroid(geometryWkt)
-    if (!centroid) continue
-
-    let nearestSlug = null
-    let bestD = Infinity
-    for (const slug of Object.keys(scenarioCities)) {
-      const e = scenarioCities[slug]
-      const lat = e.latWeightedSum / e.weightSum
-      const lon = e.lonWeightedSum / e.weightSum
-      const d = distSq(centroid, { lat, lon })
-      if (d < bestD) {
-        bestD = d
-        nearestSlug = slug
-      }
-    }
-    if (nearestSlug) scenarioCities[nearestSlug].totalCapacityKw += capacityKw
-  }
-
-  // Flatten and finalize weighted city coordinates.
-  const result = {}
-  for (const [scId, cities] of Object.entries(byScenario)) {
-    result[scId] = Object.values(cities)
-      .map((entry) => ({
-        city: entry.city,
-        totalCapacityKw: entry.totalCapacityKw,
-        lat: entry.latWeightedSum / entry.weightSum,
-        lon: entry.lonWeightedSum / entry.weightSum,
-      }))
-      .filter((d) => Number.isFinite(d.lat) && Number.isFinite(d.lon))
-  }
-  return result
+  return byScenario
 }
 
 function currentScenarioId() {
   return String(props.scenario?.id || '').replace('scenario-', '')
 }
 
-function drawScenarioMarkers() {
-  if (!mapInstance || !markerLayer) return
-  markerLayer.clearLayers()
-
+function drawScenarioFeatures() {
+  if (!mapInstance || !featureLayer) return
+  featureLayer.clearLayers()
   const scId = currentScenarioId()
-  const points = cityDataByScenario[scId] || []
-  if (!points.length) return
-
-  const values = points.map((p) => p.totalCapacityKw)
+  const features = scenarioFeatures[scId] || []
+  if (!features.length) return
+  const values = features.map((f) => f.capacityKw)
   const maxVal = Math.max(...values, 1)
   const minVal = Math.min(...values, 0)
-
-  for (const point of points) {
-    const normalized = (point.totalCapacityKw - minVal) / Math.max(1, maxVal - minVal)
-    const radius = 5 + normalized * 14
-    const marker = L.circleMarker([point.lat, point.lon], {
-      radius,
-      color: '#1565c0',
-      fillColor: '#1e88e5',
-      fillOpacity: 0.65,
-      weight: 1.5,
-    })
-
-    marker.bindTooltip(
-      `<strong>${point.city}</strong><br/>Total kW: ${Math.round(point.totalCapacityKw).toLocaleString()}`,
-      { sticky: true }
-    )
-    marker.addTo(markerLayer)
+  for (const f of features) {
+    const color = colorForKw(f.capacityKw, minVal, maxVal)
+    const isLine = f.geometryType === 'LineString'
+    const layer = isLine
+      ? L.polyline(f.latLngs, { color, weight: 3, opacity: 0.9 })
+      : L.polygon(f.latLngs, { color, weight: 1.5, fillColor: color, fillOpacity: 0.5, opacity: 0.9 })
+    layer.bindTooltip(`<strong>${f.locId}</strong><br/>Total kW: ${Math.round(f.capacityKw).toLocaleString()}`, { sticky: true })
+    layer.addTo(featureLayer)
   }
 }
 
@@ -243,14 +162,14 @@ function initMap() {
     maxZoom: 18,
   }).addTo(mapInstance)
 
-  markerLayer = L.layerGroup().addTo(mapInstance)
-  mapInstance.on('zoomend moveend', drawScenarioMarkers)
-  drawScenarioMarkers()
+  featureLayer = L.layerGroup().addTo(mapInstance)
+  mapInstance.on('zoomend moveend', drawScenarioFeatures)
+  drawScenarioFeatures()
 }
 
 onMounted(async () => {
   try {
-    cityDataByScenario = await loadCityData()
+    scenarioFeatures = await loadScenarioFeatures()
   } catch (e) {
     error.value = 'Unable to load map data.'
     console.error(e)
@@ -263,13 +182,13 @@ onMounted(async () => {
 watch(
   () => props.scenario?.id,
   () => {
-    drawScenarioMarkers()
+    drawScenarioFeatures()
   }
 )
 
 onUnmounted(() => {
   if (mapInstance) {
-    mapInstance.off('zoomend moveend', drawScenarioMarkers)
+    mapInstance.off('zoomend moveend', drawScenarioFeatures)
     mapInstance.remove()
     mapInstance = null
   }
@@ -353,21 +272,19 @@ onUnmounted(() => {
   line-height: 1.2;
 }
 
-.legend-dot {
+.legend-swatch {
   display: inline-block;
-  border-radius: 999px;
-  background: rgba(30, 136, 229, 0.65);
-  border: 1px solid #1565c0;
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
 }
 
-.legend-dot-small {
-  width: 8px;
-  height: 8px;
+.legend-swatch-light {
+  background: #bbdefb;
 }
 
-.legend-dot-large {
-  width: 16px;
-  height: 16px;
+.legend-swatch-dark {
+  background: #1565c0;
 }
 
 </style>

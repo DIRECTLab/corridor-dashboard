@@ -142,7 +142,7 @@ const COLS = {
 }
 
 // stationary_cost_case in scenario CSV: 0 = highest cost tier, 1 = middle, 2 = lowest.
-const STATIONARY_CASE_TIER_LABEL = { 0: 'Current', 1: 'Moderate', 2: 'Optimal' }
+const STATIONARY_CASE_TIER_LABEL = { 0: 'Current', 1: 'Mid-term', 2: 'Future' }
 const STATIONARY_COST_SELECT_ORDER = [2, 1, 0]
 
 function buildStationaryChargingCostSelectItems(scenarios) {
@@ -159,7 +159,7 @@ function buildStationaryChargingCostSelectItems(scenarios) {
 }
 
 // dynamic_cost_case: same encoding as stationary — 0 highest cost, 1 middle, 2 lowest.
-const DYNAMIC_CASE_TIER_LABEL = { 0: 'Current', 1: 'Moderate', 2: 'Optimal' }
+const DYNAMIC_CASE_TIER_LABEL = { 0: 'Current', 1: 'Mid-term', 2: 'Future' }
 const DYNAMIC_COST_SELECT_ORDER = [2, 1, 0]
 
 function buildDynamicChargingCostSelectItems(scenarios) {
@@ -175,12 +175,12 @@ function buildDynamicChargingCostSelectItems(scenarios) {
   }))
 }
 
-/** Assorted numeric levers sorted ascending by "expense" → Optimal … Moderate … Current */
+/** Assorted numeric levers sorted ascending by "expense" → Future … Mid-term … Current */
 function tierLabelsForExpenseOrder(count) {
   if (count <= 0) return []
-  if (count === 1) return ['Optimal']
-  if (count === 2) return ['Optimal', 'Current']
-  return ['Optimal', 'Moderate', 'Current']
+  if (count === 1) return ['Future']
+  if (count === 2) return ['Future', 'Current']
+  return ['Future', 'Mid-term', 'Current']
 }
 
 function buildBatteryCostSelectItems(scenarios) {
@@ -191,12 +191,17 @@ function buildBatteryCostSelectItems(scenarios) {
 
 function buildEvAdoptionSelectItems(scenarios) {
   const vals = [...new Set(scenarios.map(s => s.evAdoptionPercent))].sort((a, b) => a - b)
-  if (vals.length === 0) return []
-  if (vals.length === 1) return [{ title: 'Full Electrification', value: vals[0] }]
-
-  // Sorted ascending: lower adoption → high (not full); highest → full electrification.
+  if (vals.length <= 0) return []
+  if (vals.length === 1) return [{ title: 'Near-term', value: vals[0] }]
+  if (vals.length === 2) {
+    return [
+      { title: 'Near-term', value: vals[0] },
+      { title: 'Future', value: vals[1] }
+    ]
+  }
+  // If additional tiers exist, keep middle tiers explicit.
   return vals.map((v, i) => ({
-    title: i === vals.length - 1 ? 'Full Electrification' : 'High Electrification',
+    title: i === 0 ? 'Near-term' : i === vals.length - 1 ? 'Future' : 'Mid-term',
     value: v
   }))
 }
@@ -206,12 +211,13 @@ function attachBatteryAndEvTierLabels(scenarios) {
   const batLabels = tierLabelsForExpenseOrder(batVals.length)
   const batMap = Object.fromEntries(batVals.map((v, i) => [v, batLabels[i]]))
   const evVals = [...new Set(scenarios.map(s => s.evAdoptionPercent))].sort((a, b) => a - b)
-  const evMap = Object.fromEntries(
-    evVals.map((v, i) => [v, i === evVals.length - 1 ? 'Full Electrification' : 'High Electrification'])
-  )
+  const evMap = Object.fromEntries(evVals.map((v, i) => [
+    v,
+    i === 0 ? 'Near-term' : i === evVals.length - 1 ? 'Future' : 'Mid-term'
+  ]))
   for (const s of scenarios) {
-    s.batteryCostTierLabel = batMap[s.batteryCost] ?? 'Moderate'
-    s.evAdoptionTierLabel = evMap[s.evAdoptionPercent] ?? 'High Electrification'
+    s.batteryCostTierLabel = batMap[s.batteryCost] ?? 'Mid-term'
+    s.evAdoptionTierLabel = evMap[s.evAdoptionPercent] ?? 'Mid-term'
   }
 }
 
@@ -449,13 +455,13 @@ function parseScenariosFromCsv() {
         stationaryChargingCost: stationaryReadable,
         stationaryCostCase: Number.isFinite(stationaryCostCase) ? stationaryCostCase : 0,
         stationaryCostTierLabel:
-          STATIONARY_CASE_TIER_LABEL[stationaryCostCase] ?? 'Moderate',
+          STATIONARY_CASE_TIER_LABEL[stationaryCostCase] ?? 'Mid-term',
         stationaryCapexPerKw: Number(cols[COLS.stationary_capex_per_kw]) || 0,
         stationaryOpexPerKwYear: Number(cols[COLS.stationary_opex_per_kw_year]) || 0,
         dynamicChargingCost: dynamicReadable,
         dynamicCostCase: Number.isFinite(dynamicCostCase) ? dynamicCostCase : 0,
         dynamicCostTierLabel:
-          DYNAMIC_CASE_TIER_LABEL[dynamicCostCase] ?? 'Moderate',
+          DYNAMIC_CASE_TIER_LABEL[dynamicCostCase] ?? 'Mid-term',
         dynamicCapexPerLaneMile: Number(cols[COLS.dynamic_capex_per_lane_mile]) || 0,
         dynamicOpexPerLaneMileYear: Number(cols[COLS.dynamic_opex_per_lane_mile_year]) || 0,
         batteryCost: batteryKwh,
