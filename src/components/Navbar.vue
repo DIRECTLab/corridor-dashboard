@@ -3,7 +3,7 @@
     <v-app-bar-title class="d-flex align-center">
       <router-link to="/" class="d-flex align-center text-decoration-none" style="color: inherit;">
         <span class="aspire-wordmark mr-2">ASPIRE</span>
-        <span class="text-h6">Freight Electrification Explorer</span>
+        <span class="text-h6">Heavy Duty Freight Electrification Explorer</span>
       </router-link>
     </v-app-bar-title>
     <v-spacer></v-spacer>

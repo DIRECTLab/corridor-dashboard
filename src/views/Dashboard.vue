@@ -3,27 +3,6 @@
     <Navbar />
     <div style="margin-top: 48px;">
       <v-container fluid class="pa-4">
-      <!-- Context Banner -->
-      <v-row class="mb-3">
-        <v-col cols="12">
-          <v-alert type="info" variant="tonal" density="compact" icon="mdi-information-outline">
-            <strong>Class 8 vehicles only.</strong> This dashboard models infrastructure for heavy-duty
-            trucks (Class 8) across the Wasatch Front. Choose a set of assumptions below to see how
-            different investments would affect costs. All charts and metrics update when you change
-            a parameter.
-          </v-alert>
-        </v-col>
-      </v-row>
-
-      <!-- Key takeaway -->
-      <v-row class="mb-4">
-        <v-col cols="12">
-          <v-alert type="success" variant="tonal" density="compact" icon="mdi-lightbulb-on-outline">
-            <strong>Key takeaway:</strong> {{ keyTakeawayText }}
-          </v-alert>
-        </v-col>
-      </v-row>
-
       <!-- Selected scenario inputs + county coverage map -->
       <v-row class="mb-4">
         <v-col cols="12" md="6" class="d-flex">
@@ -183,6 +162,15 @@
               />
             </v-card-text>
           </v-card>
+        </v-col>
+      </v-row>
+
+      <!-- Key takeaway -->
+      <v-row class="mb-4">
+        <v-col cols="12">
+          <v-alert type="success" variant="tonal" density="compact" icon="mdi-lightbulb-on-outline">
+            <strong>Key takeaway:</strong> {{ keyTakeawayText }}
+          </v-alert>
         </v-col>
       </v-row>
 
@@ -503,6 +491,10 @@
           Quick Start
         </v-card-title>
         <v-card-text class="pt-2">
+          <v-alert type="info" variant="tonal" density="compact" icon="mdi-information-outline" class="mb-3">
+            <strong>Class 8 vehicles only.</strong> This dashboard models infrastructure for heavy-duty
+            trucks (Class 8) across the Wasatch Front.
+          </v-alert>
           <div class="text-body-2 mb-3">
             Use these three steps to explore scenarios and county-level results.
           </div>
