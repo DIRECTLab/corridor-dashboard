@@ -9,15 +9,13 @@
     </div>
     <div ref="mapContainerRef" class="city-map" :style="{ height: `${props.height}px` }"></div>
     <div class="map-legend">
-      <div class="legend-title">Total kW by feature</div>
-      <div class="legend-caption">Electrified roads and charging footprints. Darker blue means higher kW.</div>
-      <div class="legend-row">
-        <span class="legend-swatch legend-swatch-light"></span>
-        <span>Lower kW</span>
+      <div class="legend-title">Total kW by municipality</div>
+      <div class="legend-caption">
+        Colors use a log scale and cap at the 95th percentile so extreme values share the same top color.
       </div>
-      <div class="legend-row">
-        <span class="legend-swatch legend-swatch-dark"></span>
-        <span>Higher kW</span>
+      <div v-for="item in legendItems" :key="item.label" class="legend-row">
+        <span class="legend-swatch" :style="{ background: item.color }"></span>
+        <span>{{ item.label }}</span>
       </div>
     </div>
     <div class="custom-attribution">
@@ -44,6 +42,9 @@ const error = ref('')
 let mapInstance = null
 let featureLayer = null
 let scenarioFeatures = {}
+let municipalityBoundaries = []
+let waterMaskFeatures = []
+const legendItems = ref([])
 
 function parseCsvLine(line) {
   const out = []
@@ -84,21 +85,73 @@ function wktToLatLngs(type, wkt) {
     if (!match) return null
     return parseCoords(match[1])
   }
-  if (type === 'Polygon') {
-    const match = wkt.match(/POLYGON\s*\(\((.*)\)\)/i)
-    if (!match) return null
-    const ring = match[1].split('),(')[0]
-    return parseCoords(ring)
-  }
   return null
 }
 
-function colorForKw(kw, minKw, maxKw) {
-  const t = (kw - minKw) / Math.max(1, maxKw - minKw)
-  if (t < 0.25) return '#bbdefb'
-  if (t < 0.5) return '#90caf9'
-  if (t < 0.75) return '#42a5f5'
-  return '#1565c0'
+const COLOR_STEPS = ['#deebf7', '#9ecae1', '#6baed6', '#3182bd', '#08519c']
+
+function quantile(values, q) {
+  if (!values.length) return 0
+  const sorted = [...values].sort((a, b) => a - b)
+  const pos = (sorted.length - 1) * q
+  const base = Math.floor(pos)
+  const rest = pos - base
+  if (sorted[base + 1] !== undefined) return sorted[base] + rest * (sorted[base + 1] - sorted[base])
+  return sorted[base]
+}
+
+function colorForKwLogCapped(kw, minKw, capKw) {
+  const bounded = Math.min(Math.max(kw, minKw), capKw)
+  const minLog = Math.log1p(Math.max(0, minKw))
+  const maxLog = Math.log1p(Math.max(minKw + 1, capKw))
+  const t = (Math.log1p(bounded) - minLog) / Math.max(1e-9, maxLog - minLog)
+  const idx = Math.min(COLOR_STEPS.length - 1, Math.max(0, Math.floor(t * COLOR_STEPS.length)))
+  return COLOR_STEPS[idx]
+}
+
+function formatKw(kw) {
+  return Number(kw || 0).toLocaleString('en-US', { maximumSignificantDigits: 2 })
+}
+
+function municipalityFromLocId(locId) {
+  const parts = String(locId || '').split('_')
+  // Municipality names are encoded only in stationary IDs like stn_100_South_Ogden.
+  if (parts[0] !== 'stn' || parts.length < 3) return null
+  return parts.slice(2).join(' ').replace(/_/g, ' ')
+}
+
+function normalizeMunicipalityName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\s+(city|town|village|metro township|township|borough)$/i, '')
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function cleanRoadName(name) {
+  const s = String(name || '').trim()
+  if (!s) return null
+  return s.replace(/\s+/g, ' ')
+}
+
+function buildLegendItems(minKw, capKw) {
+  if (!(capKw > 0)) return []
+  const minLog = Math.log1p(Math.max(0, minKw))
+  const maxLog = Math.log1p(Math.max(minKw + 1, capKw))
+  const items = []
+  for (let i = COLOR_STEPS.length - 1; i >= 0; i -= 1) {
+    const upperT = (i + 1) / COLOR_STEPS.length
+    const lowerT = i / COLOR_STEPS.length
+    const upper = Math.expm1(minLog + (maxLog - minLog) * upperT)
+    const lower = Math.expm1(minLog + (maxLog - minLog) * lowerT)
+    const label = i === COLOR_STEPS.length - 1
+      ? `>= ${formatKw(lower)} kW`
+      : `${formatKw(lower)} - ${formatKw(upper)} kW`
+    items.push({ color: COLOR_STEPS[i], label })
+  }
+  return items
 }
 
 async function loadScenarioFeatures() {
@@ -115,14 +168,67 @@ async function loadScenarioFeatures() {
     const scId = cols[0]
     const locId = cols[1]
     const capacityKw = Number(cols[3]) || 0
+    const roadName = cols[10]
     const geometryType = cols[12]
     const geometryWkt = cols[13]
-    const latLngs = wktToLatLngs(geometryType, geometryWkt)
-    if (!latLngs?.length) continue
     if (!byScenario[scId]) byScenario[scId] = []
-    byScenario[scId].push({ locId, capacityKw, geometryType, latLngs })
+    const latLngs = geometryType === 'LineString' ? wktToLatLngs(geometryType, geometryWkt) : null
+    byScenario[scId].push({ locId, capacityKw, roadName, geometryType, latLngs })
   }
   return byScenario
+}
+
+function municipalitiesFromScenarioFeatures(byScenario) {
+  const set = new Set()
+  Object.values(byScenario).forEach((arr) => {
+    arr.forEach((f) => {
+      const name = municipalityFromLocId(f.locId)
+      if (name) set.add(name)
+    })
+  })
+  return set
+}
+
+async function loadMunicipalityBoundaries(municipalityNames) {
+  const url = 'https://services1.arcgis.com/99lidPhWCzftIe9K/ArcGIS/rest/services/UtahMunicipalBoundaries/FeatureServer/0/query'
+  const params = new URLSearchParams({
+    where: '1=1',
+    outFields: 'NAME',
+    returnGeometry: 'true',
+    f: 'geojson'
+  })
+  const res = await fetch(`${url}?${params.toString()}`)
+  if (!res.ok) throw new Error(`Failed to load municipal boundaries (${res.status})`)
+  const geojson = await res.json()
+  const target = new Set([...municipalityNames].map(normalizeMunicipalityName))
+  const filtered = (geojson.features || []).filter((f) => {
+    const n = normalizeMunicipalityName(f?.properties?.NAME)
+    return target.has(n)
+  })
+  return filtered.map((f) => ({
+    municipality: String(f.properties?.NAME || '').replace(/\s+(city|town|village|metro township|township)$/i, ''),
+    normName: normalizeMunicipalityName(f.properties?.NAME),
+    feature: f
+  }))
+}
+
+async function loadWaterMaskFeatures() {
+  // Use all multipart polygons for the two major lakes in Utah.
+  const url = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Hydro/MapServer/1/query'
+  const params = new URLSearchParams({
+    where: "NAME IN ('Great Salt Lk','Utah Lk')",
+    geometry: '-114.1,36.8,-108.9,42.3',
+    geometryType: 'esriGeometryEnvelope',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'NAME',
+    returnGeometry: 'true',
+    f: 'geojson'
+  })
+  const res = await fetch(`${url}?${params.toString()}`)
+  if (!res.ok) throw new Error(`Failed to load water mask (${res.status})`)
+  const geojson = await res.json()
+  return geojson.features || []
 }
 
 function currentScenarioId() {
@@ -134,19 +240,71 @@ function drawScenarioFeatures() {
   featureLayer.clearLayers()
   const scId = currentScenarioId()
   const features = scenarioFeatures[scId] || []
-  if (!features.length) return
-  const values = features.map((f) => f.capacityKw)
-  const maxVal = Math.max(...values, 1)
-  const minVal = Math.min(...values, 0)
+  if (!features.length) {
+    legendItems.value = []
+    return
+  }
+
+  const municipalityKw = new Map()
   for (const f of features) {
-    const color = colorForKw(f.capacityKw, minVal, maxVal)
-    const isLine = f.geometryType === 'LineString'
-    const layer = isLine
-      ? L.polyline(f.latLngs, { color, weight: 3, opacity: 0.9 })
-      : L.polygon(f.latLngs, { color, weight: 1.5, fillColor: color, fillOpacity: 0.5, opacity: 0.9 })
-    layer.bindTooltip(`<strong>${f.locId}</strong><br/>Total kW: ${Math.round(f.capacityKw).toLocaleString()}`, { sticky: true })
+    const municipality = municipalityFromLocId(f.locId)
+    if (!municipality) continue
+    const key = normalizeMunicipalityName(municipality)
+    municipalityKw.set(key, (municipalityKw.get(key) || 0) + f.capacityKw)
+  }
+
+  const municipalityValues = [...municipalityKw.values()]
+  if (!municipalityValues.length) {
+    legendItems.value = []
+    return
+  }
+  const minVal = Math.min(...municipalityValues, 0)
+  const capVal = Math.max(quantile(municipalityValues, 0.95), minVal + 1)
+  legendItems.value = buildLegendItems(minVal, capVal)
+
+  // Draw true municipality boundaries.
+  for (const b of municipalityBoundaries) {
+    const municipalityTotalKw = municipalityKw.get(b.normName) || 0
+    const color = colorForKwLogCapped(municipalityTotalKw, minVal, capVal)
+    const layer = L.geoJSON(b.feature, {
+      style: { color, weight: 1.5, fillColor: color, fillOpacity: 0.5, opacity: 0.9 }
+    })
+    layer.bindTooltip(
+      `<strong>${b.municipality}</strong><br/>Municipality total: ${formatKw(municipalityTotalKw)} kW`,
+      { sticky: true }
+    )
     layer.addTo(featureLayer)
   }
+
+  // Water mask clips municipality fills over large lakes.
+  for (const water of waterMaskFeatures) {
+    L.geoJSON(water, {
+      style: {
+        color: '#edf3f7',
+        weight: 0,
+        fillColor: '#edf3f7',
+        fillOpacity: 1,
+        opacity: 1
+      },
+      interactive: false
+    }).addTo(featureLayer)
+  }
+
+  // Draw roads on top so they remain hoverable.
+  const lineFeatures = features.filter(f => f.geometryType === 'LineString' && f.latLngs?.length)
+  lineFeatures.forEach((f) => {
+    const tooltipName = cleanRoadName(f.roadName) || 'Road segment'
+    const layer = L.polyline(f.latLngs, { color: '#d81b60', weight: 5, opacity: 0.95 })
+    layer.bindTooltip(`<strong>${tooltipName}</strong><br/>Segment kW: ${formatKw(f.capacityKw)} kW`, { sticky: true })
+    layer.addTo(featureLayer)
+  })
+
+  // Ensure line layers are visually on top after render.
+  featureLayer.eachLayer((layer) => {
+    if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
+      layer.bringToFront()
+    }
+  })
 }
 
 function initMap() {
@@ -170,6 +328,9 @@ function initMap() {
 onMounted(async () => {
   try {
     scenarioFeatures = await loadScenarioFeatures()
+    const municipalities = municipalitiesFromScenarioFeatures(scenarioFeatures)
+    municipalityBoundaries = await loadMunicipalityBoundaries(municipalities)
+    waterMaskFeatures = await loadWaterMaskFeatures()
   } catch (e) {
     error.value = 'Unable to load map data.'
     console.error(e)
@@ -277,14 +438,6 @@ onUnmounted(() => {
   width: 18px;
   height: 10px;
   border-radius: 2px;
-}
-
-.legend-swatch-light {
-  background: #bbdefb;
-}
-
-.legend-swatch-dark {
-  background: #1565c0;
 }
 
 </style>

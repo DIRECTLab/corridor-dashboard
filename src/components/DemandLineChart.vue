@@ -114,7 +114,7 @@ const chartOptions = computed(() => ({
     tooltip: {
       callbacks: {
         label: function(context) {
-          return Number(context.parsed.y).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' MW'
+          return Number(context.parsed.y).toLocaleString('en-US', { maximumSignificantDigits: 2 }) + ' MW'
         }
       }
     }
@@ -124,7 +124,7 @@ const chartOptions = computed(() => ({
       beginAtZero: true,
       ticks: {
         callback: function(value) {
-          return Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' MW'
+          return Number(value).toLocaleString('en-US', { maximumSignificantDigits: 2 }) + ' MW'
         }
       }
     }

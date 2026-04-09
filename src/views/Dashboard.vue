@@ -74,7 +74,7 @@
                       Capital cost (capex) per kW of traditional plug-in stations
                     </v-tooltip>
                   </div>
-                  <div class="text-body-2 font-weight-medium">${{ currentScenario.stationaryCapexPerKw?.toLocaleString() }}/kW</div>
+                  <div class="text-body-2 font-weight-medium">${{ formatSig(currentScenario.stationaryCapexPerKw) }}/kW</div>
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
@@ -86,7 +86,7 @@
                       Yearly operating cost (opex) per kW of traditional plug-in stations
                     </v-tooltip>
                   </div>
-                  <div class="text-body-2 font-weight-medium">${{ currentScenario.stationaryOpexPerKwYear?.toLocaleString() }}/kW/yr</div>
+                  <div class="text-body-2 font-weight-medium">${{ formatSig(currentScenario.stationaryOpexPerKwYear) }}/kW/yr</div>
                 </v-col>
                 <v-col cols="12" sm="6" md="3">
                   <div class="d-flex align-center text-caption text-medium-emphasis mb-1">
@@ -270,7 +270,7 @@
         <v-col cols="12" md="6" class="d-flex">
           <v-card class="flex-grow-1">
             <v-card-title class="d-flex align-center">
-              Additional Grid Capacity Needed (MW)
+              Additional Grid Capacity Needed
               <v-tooltip location="bottom" max-width="320">
                 <template #activator="{ props }">
                   <v-icon v-bind="props" size="18" color="grey" class="ml-2">mdi-information-outline</v-icon>
@@ -409,7 +409,7 @@
                         </v-tooltip>
                       </div>
                       <div class="text-h6 font-weight-bold mt-1">
-                        {{ Math.round(selectedCountyData.totalKwh / 1000).toLocaleString() }} MWh
+                        {{ formatSig(selectedCountyData.totalKwh / 1000) }} MWh
                       </div>
                     </v-card>
                   </v-col>
@@ -425,7 +425,7 @@
                         </v-tooltip>
                       </div>
                       <div class="text-h6 font-weight-bold mt-1">
-                        ${{ Number(selectedCountyData.avgBreakevenPerKwh).toLocaleString('en-US', { maximumFractionDigits: 3 }) }}/kWh
+                        ${{ formatSig(selectedCountyData.avgBreakevenPerKwh) }}/kWh
                       </div>
                     </v-card>
                   </v-col>
@@ -471,8 +471,8 @@
                   <tbody>
                     <tr v-for="loc in selectedCountyTopLocations" :key="loc.name">
                       <td>{{ loc.name }}</td>
-                      <td class="text-right">{{ Math.round(loc.kwhVal / 1000).toLocaleString() }}</td>
-                      <td class="text-right">${{ Number(loc.breakevenPerKwh).toLocaleString('en-US', { maximumFractionDigits: 3 }) }}</td>
+                      <td class="text-right">{{ formatSig(loc.kwhVal / 1000) }}</td>
+                      <td class="text-right">${{ formatSig(loc.breakevenPerKwh) }}</td>
                     </tr>
                   </tbody>
                 </v-table>
@@ -607,24 +607,28 @@ function formatCurrency(value) {
   return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
+function formatSig(value) {
+  return Number(value || 0).toLocaleString('en-US', { maximumSignificantDigits: 2 })
+}
+
 function formatPowerSi(watts) {
   const abs = Math.abs(Number(watts))
-  if (abs >= 1e9) return `${Number(watts / 1e9).toLocaleString('en-US', { maximumFractionDigits: 2 })} GW`
-  if (abs >= 1e6) return `${Number(watts / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 })} MW`
-  if (abs >= 1e3) return `${Number(watts / 1e3).toLocaleString('en-US', { maximumFractionDigits: 2 })} kW`
-  return `${Number(watts).toLocaleString('en-US', { maximumFractionDigits: 2 })} W`
+  if (abs >= 1e9) return `${Number(watts / 1e9).toLocaleString('en-US', { maximumSignificantDigits: 2 })} GW`
+  if (abs >= 1e6) return `${Number(watts / 1e6).toLocaleString('en-US', { maximumSignificantDigits: 2 })} MW`
+  if (abs >= 1e3) return `${Number(watts / 1e3).toLocaleString('en-US', { maximumSignificantDigits: 2 })} kW`
+  return `${Number(watts).toLocaleString('en-US', { maximumSignificantDigits: 2 })} W`
 }
 
 function formatCentsPerMile(dollarsPerMile) {
   const cents = Number(dollarsPerMile || 0) * 100
-  return `${cents.toLocaleString('en-US', { maximumFractionDigits: 2 })} ¢/mi`
+  return `${cents.toLocaleString('en-US', { maximumSignificantDigits: 2 })} ¢/mi`
 }
 
 function formatElectrificationExplainer(samplePercent) {
   const p = Number(samplePercent || 0)
   if (p === 40) return '5.5% of total truck VMT'
-  if (p === 100) return '21.8% of total truck VMT'
-  return `${p.toLocaleString('en-US', { maximumFractionDigits: 2 })}% of sample`
+  if (p === 100) return '22% of total truck VMT'
+  return `${p.toLocaleString('en-US', { maximumSignificantDigits: 2 })}% of sample`
 }
 
 function selectScenario(scenario) {

@@ -31,7 +31,7 @@ const props = defineProps({ currentScenario: Object, allScenarios: Array })
 const BIN_COUNT = 12
 const histogram = computed(() => {
   const values = (props.allScenarios || []).map(s => Number(s.costPerMile || 0) * 100)
-  if (!values.length) return { labels: [], counts: [], currentBin: -1 }
+  if (!values.length) return { counts: [], currentBin: -1, centers: [], binWidth: 1, min: 0, max: 0 }
   const min = Math.min(...values)
   const max = Math.max(...values)
   const span = Math.max(0.0001, max - min)
@@ -40,23 +40,8 @@ const histogram = computed(() => {
   values.forEach(v => counts[Math.min(BIN_COUNT - 1, Math.floor((v - min) / width))] += 1)
   const current = Number(props.currentScenario?.costPerMile || 0) * 100
   const currentBin = Math.min(BIN_COUNT - 1, Math.floor((current - min) / width))
-  const labels = Array.from({ length: BIN_COUNT }, (_, i) => {
-    const lo = min + i * width
-    const hi = min + (i + 1) * width
-    return `${trim(lo)}-${trim(hi)} c/mi`
-  })
-  return { labels, counts, currentBin }
-})
-const collapsedHistogram = computed(() => {
-  const keep = histogram.value.counts
-    .map((count, i) => ({ count, i }))
-    .filter(({ count }) => count > 0)
-    .map(({ i }) => i)
-  return {
-    labels: keep.map(i => histogram.value.labels[i]),
-    counts: keep.map(i => histogram.value.counts[i]),
-    currentBin: keep.indexOf(histogram.value.currentBin),
-  }
+  const centers = Array.from({ length: BIN_COUNT }, (_, i) => min + (i + 0.5) * width)
+  return { counts, currentBin, centers, binWidth: width, min, max }
 })
 function trim(v) { return Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 }) }
 
@@ -67,21 +52,28 @@ const chartOptions = computed(() => ({
     legend: { display: false },
     tooltip: {
       callbacks: {
+        title: (items) => {
+          const i = items[0]?.dataIndex ?? 0
+          const lo = histogram.value.min + i * histogram.value.binWidth
+          const hi = histogram.value.min + (i + 1) * histogram.value.binWidth
+          return `${trim(lo)}-${trim(hi)} ¢/mi`
+        },
         label: (context) => `${context.parsed.y} scenarios`
       }
     }
   },
   scales: {
     x: {
+      type: 'linear',
+      min: histogram.value.min,
+      max: histogram.value.max,
       ticks: {
-        display: true,
-        autoSkip: true,
-        maxTicksLimit: 6,
-        maxRotation: 0
+        callback: (value) => `${trim(value)} ¢/mi`,
+        maxTicksLimit: 6
       },
       title: {
         display: true,
-        text: 'Cost range (c/mi)'
+        text: 'Cost (¢/mi)'
       },
     },
     y: {
@@ -92,14 +84,18 @@ const chartOptions = computed(() => ({
 }))
 
 const chartData = computed(() => ({
-  labels: collapsedHistogram.value.labels,
+  labels: [],
   datasets: [{
     label: 'Scenario count',
-    data: collapsedHistogram.value.counts,
-    backgroundColor: collapsedHistogram.value.counts.map((_, i) =>
-      i === collapsedHistogram.value.currentBin ? 'rgba(25, 118, 210, 0.85)' : 'rgba(158, 158, 158, 0.75)'
+    data: histogram.value.centers.map((x, i) => ({ x, y: histogram.value.counts[i] })),
+    backgroundColor: histogram.value.counts.map((_, i) =>
+      i === histogram.value.currentBin ? 'rgba(25, 118, 210, 0.85)' : 'rgba(158, 158, 158, 0.75)'
     ),
-    borderWidth: 0
+    borderWidth: 0,
+    barThickness: 'flex',
+    categoryPercentage: 1.0,
+    barPercentage: 1.0,
+    inflateAmount: 0
   }]
 }))
 </script>

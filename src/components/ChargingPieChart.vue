@@ -66,7 +66,7 @@ const chartOptions = {
           const value = context.parsed || 0
           const total = context.dataset.data.reduce((a, b) => a + b, 0)
           const percentage = total > 0 ? (value / total) * 100 : 0
-          return `${label}: ${Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 })} MW (${Number(percentage).toLocaleString('en-US', { maximumFractionDigits: 1 })}%)`
+          return `${label}: ${Number(value).toLocaleString('en-US', { maximumSignificantDigits: 2 })} MW (${Number(percentage).toLocaleString('en-US', { maximumSignificantDigits: 2 })}%)`
         }
       }
     }
