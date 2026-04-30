@@ -481,6 +481,17 @@
           </v-card>
         </v-col>
       </v-row>
+
+      <v-row class="mt-2">
+        <v-col cols="12">
+          <v-alert type="info" variant="tonal" density="comfortable" icon="mdi-information-outline">
+            This material is based upon work supported by the U.S. Department of Energy's Office of
+            Energy Efficiency and Renewable Energy (EERE) Vehicle Technologies Office (VTO) under the
+            Award Number DE-EE0010644. The views expressed herein do not necessarily represent the views
+            of the U.S. Department of Energy or the United States Government.
+          </v-alert>
+        </v-col>
+      </v-row>
       </v-container>
     </div>
 
