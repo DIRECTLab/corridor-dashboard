@@ -1,6 +1,6 @@
 <template>
   <div style="height: 300px;">
-    <Doughnut
+    <Bar
       :data="chartData"
       :options="chartOptions"
     />
@@ -9,16 +9,20 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Doughnut } from 'vue-chartjs'
+import { Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS,
-  ArcElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
   Tooltip,
   Legend
 } from 'chart.js'
 
 ChartJS.register(
-  ArcElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
   Tooltip,
   Legend
 )
@@ -34,25 +38,28 @@ const chartData = computed(() => {
     (props.scenario.totalChargeCapacityKw * props.scenario.staticChargingPercent) / 100 / 1000
 
   return {
-    labels: ['Dynamic Charging', 'Static Charging'],
+    labels: [''],
     datasets: [
       {
-        data: [dynamicMw, staticMw],
-        backgroundColor: [
-          'rgba(25, 118, 210, 0.8)',
-          'rgba(76, 175, 80, 0.8)'
-        ],
-        borderColor: [
-          'rgba(25, 118, 210, 1)',
-          'rgba(76, 175, 80, 1)'
-        ],
-        borderWidth: 2
+        label: 'Dynamic Charging',
+        data: [dynamicMw],
+        backgroundColor: 'rgba(25, 118, 210, 0.8)',
+        borderColor: 'rgba(25, 118, 210, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Static Charging',
+        data: [staticMw],
+        backgroundColor: 'rgba(76, 175, 80, 0.8)',
+        borderColor: 'rgba(76, 175, 80, 1)',
+        borderWidth: 1
       }
     ]
   }
 })
 
 const chartOptions = {
+  indexAxis: 'y',
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -61,14 +68,43 @@ const chartOptions = {
     },
     tooltip: {
       callbacks: {
-        label: function(context) {
-          const label = context.label || ''
-          const value = context.parsed || 0
-          const total = context.dataset.data.reduce((a, b) => a + b, 0)
+        label(context) {
+          const label = context.dataset.label || ''
+          const value = context.parsed.x
+          const idx = context.dataIndex
+          const total = context.chart.data.datasets.reduce(
+            (sum, ds) => sum + Number(ds.data[idx] || 0),
+            0
+          )
           const percentage = total > 0 ? (value / total) * 100 : 0
           return `${label}: ${Number(value).toLocaleString('en-US', { maximumSignificantDigits: 2 })} MW (${Number(percentage).toLocaleString('en-US', { maximumSignificantDigits: 2 })}%)`
         }
       }
+    }
+  },
+  scales: {
+    x: {
+      stacked: true,
+      beginAtZero: true,
+      title: {
+        display: true,
+        text: 'Capacity (MW)'
+      },
+      ticks: {
+        callback: (value) =>
+          Number(value).toLocaleString('en-US', { maximumSignificantDigits: 2 })
+      }
+    },
+    y: {
+      stacked: true,
+      display: false
+    }
+  },
+  datasets: {
+    bar: {
+      maxBarThickness: 56,
+      categoryPercentage: 1,
+      barPercentage: 1
     }
   }
 }

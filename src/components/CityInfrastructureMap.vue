@@ -29,6 +29,7 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import infrastructureMapCsvUrl from '../data/infrastructure_map.csv?url'
+import waterMaskGeoJson from '../data/water_mask.json'
 
 const props = defineProps({
   scenario: Object,
@@ -212,23 +213,10 @@ async function loadMunicipalityBoundaries(municipalityNames) {
   }))
 }
 
-async function loadWaterMaskFeatures() {
-  // Use all multipart polygons for the two major lakes in Utah.
-  const url = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Hydro/MapServer/1/query'
-  const params = new URLSearchParams({
-    where: "NAME IN ('Great Salt Lk','Utah Lk')",
-    geometry: '-114.1,36.8,-108.9,42.3',
-    geometryType: 'esriGeometryEnvelope',
-    inSR: '4326',
-    spatialRel: 'esriSpatialRelIntersects',
-    outFields: 'NAME',
-    returnGeometry: 'true',
-    f: 'geojson'
-  })
-  const res = await fetch(`${url}?${params.toString()}`)
-  if (!res.ok) throw new Error(`Failed to load water mask (${res.status})`)
-  const geojson = await res.json()
-  return geojson.features || []
+function loadWaterMaskFeatures() {
+  // Bundled with the app to avoid CORS-restricted runtime fetches.
+  // Source: Natural Earth 1:10m physical lakes (Great Salt Lake, Utah Lake).
+  return waterMaskGeoJson?.features || []
 }
 
 function currentScenarioId() {
@@ -327,10 +315,16 @@ function initMap() {
 
 onMounted(async () => {
   try {
+    waterMaskFeatures = loadWaterMaskFeatures()
     scenarioFeatures = await loadScenarioFeatures()
     const municipalities = municipalitiesFromScenarioFeatures(scenarioFeatures)
-    municipalityBoundaries = await loadMunicipalityBoundaries(municipalities)
-    waterMaskFeatures = await loadWaterMaskFeatures()
+    try {
+      municipalityBoundaries = await loadMunicipalityBoundaries(municipalities)
+    } catch (e) {
+      // Boundaries are decorative; failing to load them shouldn't break the map.
+      console.error('Failed to load municipality boundaries', e)
+      municipalityBoundaries = []
+    }
   } catch (e) {
     error.value = 'Unable to load map data.'
     console.error(e)
